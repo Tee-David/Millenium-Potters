@@ -1,0 +1,8 @@
+ Honest opinion. With what we have i want to make very definitive changes.
+  1. Firebase as database and not supabse; and it must work the same way without issues. Following the schema
+  2. Same code for frontend. I want the frontend hosted on vercel and backend on render. We can use firebase for auth or any simpler secure free alternative
+
+  Compared to what we have right now? Is this possible and it will work right?
+
+  Because right now, the issues I'm having with this particular one is database issues. It can't support users running concurrently.
+  I still want the frontend to look the same though. I don't want to break my code. WHat do you have in mind? 
