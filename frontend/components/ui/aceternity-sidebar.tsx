@@ -30,9 +30,13 @@ import {
   Briefcase,
   PieChart,
   Cog,
+  UserCircle,
+  LogOut,
 } from "lucide-react";
 import Image from "next/image";
 import { UserRole } from "@/lib/enum";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export interface NavItem {
   name: string;
@@ -327,6 +331,14 @@ function DesktopSidebar({
   isActive,
   animate,
 }: DesktopSidebarProps) {
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
+
   return (
     <>
       <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
@@ -352,7 +364,26 @@ function DesktopSidebar({
           ))}
         </div>
       </div>
-      <div>
+      <div className="space-y-2 border-t border-neutral-200 dark:border-neutral-700 pt-4">
+        <SidebarLink
+          item={{
+            name: "Profile",
+            href: "/dashboard/settings",
+            icon: UserCircle,
+          }}
+          isActive={isActive("/dashboard/settings")}
+          open={open}
+        />
+        <SidebarLink
+          item={{
+            name: "Sign Out",
+            href: "#",
+            icon: LogOut,
+          }}
+          isActive={false}
+          open={open}
+          onClick={handleLogout}
+        />
         <SidebarLink
           item={{
             name: open ? "Collapse" : "Expand",
@@ -556,8 +587,16 @@ export function MobileSidebar({
   setOpen: (open: boolean) => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const { logo } = useCompany();
+
+  const handleLogout = async () => {
+    setOpen(false);
+    await logout();
+    router.push("/login");
+  };
 
   const rolesArray = normalizeUserRoles(userRoles);
 
@@ -620,6 +659,28 @@ export function MobileSidebar({
                     isActive={isActive}
                   />
                 ))}
+              </div>
+              <div className="mt-auto pt-6 border-t border-neutral-200 dark:border-neutral-700 space-y-2">
+                <SidebarLink
+                  item={{
+                    name: "Profile",
+                    href: "/dashboard/settings",
+                    icon: UserCircle,
+                  }}
+                  isActive={isActive("/dashboard/settings")}
+                  open={true}
+                  onClick={() => setOpen(false)}
+                />
+                <SidebarLink
+                  item={{
+                    name: "Sign Out",
+                    href: "#",
+                    icon: LogOut,
+                  }}
+                  isActive={false}
+                  open={true}
+                  onClick={handleLogout}
+                />
               </div>
             </div>
           </motion.div>

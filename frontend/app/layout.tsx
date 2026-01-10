@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import KeepAliveProvider from "@/components/KeepAliveProvider";
 import { CompanyProvider } from "@/contexts/CompanyContext";
+import { ThemeProvider } from "@/components/theme-provider";
+import { SmoothCursor } from "@/components/ui/smooth-cursor";
 
 const redHat = Red_Hat_Display({
   variable: "--font-red-hat-display",
@@ -31,16 +33,24 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${redHat.variable} ${geistMono.variable} font-red-hat antialiased bg-gray-50 min-h-screen`}
+        className={`${redHat.variable} ${geistMono.variable} font-red-hat antialiased bg-gray-50 dark:bg-gray-900 min-h-screen`}
       >
-        <CompanyProvider>
-          <KeepAliveProvider />
-          {children}
-          {/* ✅ Global Sonner Toaster */}
-          <Toaster richColors position="top-right" duration={6000} />
-        </CompanyProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SmoothCursor />
+          <CompanyProvider>
+            <KeepAliveProvider />
+            {children}
+            {/* ✅ Global Sonner Toaster */}
+            <Toaster richColors position="top-right" duration={6000} />
+          </CompanyProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
