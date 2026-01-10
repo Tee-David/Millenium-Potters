@@ -6,20 +6,6 @@ import prisma from "../prismaClient";
 
 export class AuthService {
   static async register(email: string, password: string) {
-    // Check if maximum admin limit (6) has been reached
-    const adminCount = await prisma.user.count({
-      where: {
-        role: Role.ADMIN,
-        deletedAt: null,
-      },
-    });
-
-    if (adminCount >= 6) {
-      throw new Error(
-        "Admin registration is not allowed. Maximum of 6 admins already exist."
-      );
-    }
-
     // Validate email doesn't exist
     const existingUser = await prisma.user.findUnique({
       where: { email },
