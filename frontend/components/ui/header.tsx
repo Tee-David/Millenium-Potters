@@ -3,11 +3,17 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Menu } from "lucide-react";
+import { useSidebar } from "@/components/ui/aceternity-sidebar";
 
-export function Header() {
+interface HeaderProps {
+  onMobileMenuClick?: () => void;
+}
+
+export function Header({ onMobileMenuClick }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { logout } = useAuth();
+  const sidebar = useSidebar();
 
   const handleLogout = async () => {
     setShowUserMenu(false);
@@ -19,7 +25,29 @@ export function Header() {
       <div className="flex items-center justify-between">
         {/* Left side - Menu toggle */}
         <div className="flex items-center gap-2 sm:gap-4">
-          <SidebarTrigger className="min-h-[44px] min-w-[44px] sm:min-h-[36px] sm:min-w-[36px]" />
+          {/* Mobile Menu Button */}
+          <button
+            onClick={onMobileMenuClick}
+            className={cn(
+              "md:hidden flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors",
+              "min-h-[44px] min-w-[44px]"
+            )}
+            aria-label="Open mobile menu"
+          >
+            <Menu className="h-6 w-6 text-gray-600" />
+          </button>
+
+          {/* Desktop Sidebar Toggle */}
+          <button
+            onClick={() => sidebar?.setOpen?.(!sidebar?.open)}
+            className={cn(
+              "hidden md:flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors",
+              "min-h-[36px] min-w-[36px]"
+            )}
+            aria-label="Toggle sidebar"
+          >
+            <Menu className="h-5 w-5 text-gray-600" />
+          </button>
         </div>
 
         {/* Right side - Actions */}

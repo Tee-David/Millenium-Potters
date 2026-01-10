@@ -1,14 +1,15 @@
 "use client";
 
 import type React from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "../ui/header";
-import { AppSidebar } from "../ui/app-sidebar";
 import {
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+  AceternitySidebar,
+  SidebarBody,
+  MobileSidebar,
+} from "@/components/ui/aceternity-sidebar";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, isLoading } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Show loading state while fetching user data
   if (isLoading) {
@@ -30,14 +32,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar userRoles={user?.role ? [user.role] : []} />
-      <SidebarInset>
-        <Header />
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
-          {children}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <AceternitySidebar>
+      <div className="flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 overflow-hidden h-screen">
+        {/* Desktop Sidebar */}
+        <SidebarBody
+          className="hidden md:flex"
+          userRoles={user?.role ? [user.role] : []}
+        />
+
+        {/* Mobile Sidebar */}
+        <MobileSidebar
+          open={mobileOpen}
+          setOpen={setMobileOpen}
+          userRoles={user?.role ? [user.role] : []}
+        />
+
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Header onMobileMenuClick={() => setMobileOpen(true)} />
+          <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-gray-50">
+            {children}
+          </main>
+        </div>
+      </div>
+    </AceternitySidebar>
   );
 }
