@@ -162,13 +162,12 @@ const LoginPage: FC = () => {
           <div className="text-center space-y-4">
             <div className="flex justify-center">
               <Image
-                src={logo || "/logo.png"}
+                src="/logo-horizontal.png"
                 alt="Company Logo"
-                width={160}
-                height={48}
-                className="h-12 sm:h-14 w-auto object-contain"
+                width={200}
+                height={60}
+                className="h-14 sm:h-16 w-auto object-contain"
                 priority
-                key={logo}
                 onError={(e) => {
                   e.currentTarget.src = "/logo.png";
                 }}

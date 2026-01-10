@@ -375,11 +375,11 @@ function Logo({ logo }: { logo: string | null }) {
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
       <Image
-        src={(logo ? getSafeImageUrl(logo) : null) || "/logo.png"}
+        src="/logo-horizontal.png"
         alt="Company Logo"
         width={200}
-        height={80}
-        className="h-20 w-auto object-contain"
+        height={60}
+        className="h-16 w-auto object-contain"
         priority
         onError={(e) => {
           e.currentTarget.src = "/logo.png";
@@ -396,14 +396,14 @@ function LogoIcon({ logo }: { logo: string | null }) {
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
       <Image
-        src={(logo ? getSafeImageUrl(logo) : null) || "/logo.png"}
+        src="/logo-favicon.png"
         alt="Company Logo"
-        width={32}
-        height={32}
-        className="h-8 w-8 object-contain"
+        width={40}
+        height={40}
+        className="h-10 w-10 object-contain"
         priority
         onError={(e) => {
-          e.currentTarget.src = "/logo.png";
+          e.currentTarget.src = "/logo-favicon.png";
         }}
       />
     </Link>

@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   title: "Millenium Potters",
   description:
     "Millenium Potters is a loan management platform that helps businesses and individuals streamline loan applications, approvals, repayments, and reporting with ease.",
+  icons: {
+    icon: "/logo-favicon.png",
+    shortcut: "/logo-favicon.png",
+    apple: "/logo-favicon.png",
+  },
 };
 
 export default function RootLayout({
