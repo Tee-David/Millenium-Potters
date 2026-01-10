@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, createContext, useContext } from "react";
+import React, { useState, createContext, useContext } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -227,18 +227,17 @@ export function AceternitySidebar({
 
 interface SidebarBodyProps {
   className?: string;
-  children: React.ReactNode;
   userRoles?: UserRole[] | UserRole;
 }
 
 export function SidebarBody({
   className,
-  children,
   userRoles,
   ...props
 }: SidebarBodyProps) {
   const pathname = usePathname();
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [isHovering, setIsHovering] = useState(false);
   const { logo } = useCompany();
   const { open, setOpen, animate } = useSidebar();
 
@@ -263,20 +262,36 @@ export function SidebarBody({
     }))
     .filter((section) => section.items.length > 0);
 
+  // Auto-expand sections containing active items
+  React.useEffect(() => {
+    const activeSections = filteredSections
+      .filter((section) => section.items.some((item) => isActive(item.href)))
+      .map((section) => section.title);
+
+    setExpandedSections((prev) => {
+      const newExpanded = [...new Set([...prev, ...activeSections])];
+      return newExpanded;
+    });
+  }, [pathname, filteredSections.length]);
+
+  const effectiveOpen = open || isHovering;
+
   return (
     <motion.div
       className={cn(
-        "h-full px-4 py-4 hidden md:flex md:flex-col  bg-white dark:bg-neutral-900 w-[250px] flex-shrink-0",
+        "h-full px-4 py-4 hidden md:flex md:flex-col bg-white dark:bg-neutral-900 w-[250px] flex-shrink-0 relative",
         className
       )}
       animate={{
-        width: animate ? (open ? "250px" : "60px") : "250px",
+        width: animate ? (effectiveOpen ? "250px" : "60px") : "250px",
       }}
+      onMouseEnter={() => !open && setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
       {...props}
     >
       <DesktopSidebar
         logo={logo}
-        open={open}
+        open={effectiveOpen}
         setOpen={setOpen}
         filteredMain={filteredMain}
         filteredSections={filteredSections}
@@ -410,7 +425,8 @@ function SidebarLink({ item, isActive, open, onClick }: SidebarLinkProps) {
       href={onClick ? "#" : item.href}
       onClick={onClick}
       className={cn(
-        "flex items-center justify-start gap-2  group/sidebar py-2 px-2 rounded-md transition-colors",
+        "flex items-center gap-2 group/sidebar py-2 px-2 rounded-md transition-colors",
+        open ? "justify-start" : "justify-center",
         isActive
           ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
           : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
