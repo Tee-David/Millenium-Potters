@@ -178,7 +178,7 @@ export function SearchableSelect({
           </div>
 
           {/* Options list */}
-          <div className="max-h-[min(45vh,280px)] overflow-y-auto overscroll-contain p-1">
+          <div className="max-h-[min(45vh,280px)] overflow-y-auto overscroll-contain p-2">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
                 <button
@@ -190,19 +190,20 @@ export function SearchableSelect({
                     handleSelect(option.value);
                   }}
                   className={cn(
-                    "relative flex w-full cursor-pointer items-center rounded-sm py-2.5 px-3 text-sm outline-none",
+                    "relative flex w-full cursor-pointer items-center rounded-md py-3 px-4 text-sm outline-none",
                     "touch-manipulation select-none",
                     "hover:bg-accent hover:text-accent-foreground",
                     "focus:bg-accent focus:text-accent-foreground",
                     "active:bg-accent/80",
+                    "transition-colors duration-150",
                     option.value === value && "bg-accent/50"
                   )}
                 >
-                  <span className="flex-1 truncate text-left">
+                  <span className="flex-1 text-left leading-relaxed">
                     {option.label}
                   </span>
                   {option.value === value && (
-                    <Check className="h-4 w-4 flex-shrink-0 ml-2 text-emerald-600" />
+                    <Check className="h-4 w-4 flex-shrink-0 ml-3 text-emerald-600" />
                   )}
                 </button>
               ))
