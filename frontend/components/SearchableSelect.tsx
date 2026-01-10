@@ -12,6 +12,7 @@ interface SearchableSelectProps {
   placeholder: string;
   searchPlaceholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function SearchableSelect({
@@ -21,6 +22,7 @@ export function SearchableSelect({
   placeholder,
   searchPlaceholder = "Search...",
   className,
+  disabled = false,
 }: SearchableSelectProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -93,10 +95,11 @@ export function SearchableSelect({
   }, [isOpen]);
 
   const toggleOpen = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (disabled) return;
     e.preventDefault();
     e.stopPropagation();
     setIsOpen((prev) => !prev);
-  }, []);
+  }, [disabled]);
 
   return (
     <div ref={containerRef} className={cn("relative w-full", className)}>
@@ -104,6 +107,7 @@ export function SearchableSelect({
       <button
         type="button"
         onClick={toggleOpen}
+        disabled={disabled}
         className={cn(
           "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs",
           "ring-offset-background placeholder:text-muted-foreground",

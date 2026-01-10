@@ -12,6 +12,7 @@ export function UnionMemberDetailsForm({
   creditOfficerOptions,
   loadingUnions,
   loadingOfficers,
+  isCreditOfficerDisabled,
 }: any) {
   const [errors, setErrors] = useState<any>({});
 
@@ -87,6 +88,7 @@ export function UnionMemberDetailsForm({
           }
           searchPlaceholder="Search credit officers..."
           options={creditOfficerOptions}
+          disabled={isCreditOfficerDisabled}
         />
         {formData.union &&
           !loadingOfficers &&

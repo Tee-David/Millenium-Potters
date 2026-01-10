@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { validateDocumentFile } from "@/lib/api";
+import { validateDocumentFile, auth } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { unionsApi, unionMembersApi, usersApi } from "@/lib/api";
 import { UnionMemberDetailsForm } from "./UnionMemberDetailsForm";
 import { UnionMemberDocumentsForm } from "./UnionMemberDocumentsForm";
+import { UserRole } from "@/lib/enum";
 
 export function UnionMemberCreateForm() {
   const router = useRouter();
@@ -51,6 +52,7 @@ export function UnionMemberCreateForm() {
   const [loadingUnions, setLoadingUnions] = useState(true);
   const [loadingOfficers, setLoadingOfficers] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreditOfficerDisabled, setIsCreditOfficerDisabled] = useState(false);
 
   const formatOfficerLabel = (officer: any) => {
     if (!officer) return "Credit Officer";
@@ -162,6 +164,35 @@ export function UnionMemberCreateForm() {
         setError("Failed to load credit officers");
       })
       .finally(() => setLoadingOfficers(false));
+  }, []);
+
+  // Fetch user profile and auto-select credit officer if logged-in user is a credit officer
+  React.useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const profileResponse = await auth.profile();
+        const user = profileResponse.data.data || profileResponse.data;
+
+        // Auto-fill based on user role (with fallback for different role formats)
+        const userRole = user.role as string;
+        if (
+          userRole === UserRole.CREDIT_OFFICER ||
+          userRole === "CREDIT_OFFICER" ||
+          userRole === "credit_officer"
+        ) {
+          setIsCreditOfficerDisabled(true);
+          // Auto-select the logged-in credit officer
+          setFormData((prev) => ({
+            ...prev,
+            creditOfficer: user.id || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
   }, []);
 
   // Derive available credit officers whenever union selection changes
@@ -306,6 +337,7 @@ export function UnionMemberCreateForm() {
               creditOfficerOptions={creditOfficerOptions}
               loadingUnions={loadingUnions}
               loadingOfficers={loadingOfficers}
+              isCreditOfficerDisabled={isCreditOfficerDisabled}
             />
           </div>
           {/* Documents Section */}
