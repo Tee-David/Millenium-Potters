@@ -106,12 +106,8 @@ export function UnionMemberList() {
     try {
       const response = await unionMembersApi.toggleVerification(member.id);
       if (response.data.success) {
-        // Update the member in the list
-        setMembers((prev) =>
-          prev.map((m) =>
-            m.id === member.id ? { ...m, isVerified: !m.isVerified } : m
-          )
-        );
+        // Refetch the data to ensure we have the latest state from the server
+        await loadMembers();
         toast.success(
           response.data.message ||
             `Member ${
@@ -122,6 +118,7 @@ export function UnionMemberList() {
         throw new Error(response.data.message);
       }
     } catch (err: any) {
+      console.error("Verification toggle error:", err);
       toast.error(
         err.response?.data?.message ||
           err.message ||
