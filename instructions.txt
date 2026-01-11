@@ -1,0 +1,2 @@
+ I want us to convert this project into a traditional php + mysql project... Like a script i can deploy to cpanel. I cannot be paying for supabase and i don't want to consider those other unnecessary online postgres. They are expensive and limited. do you get why now? I want the ui to say the same... Is it feasible and give me     
+  you game plan. ultrathink.

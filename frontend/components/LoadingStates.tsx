@@ -26,7 +26,7 @@ export function LoadingSpinner({
       <div
         className={`${sizeClasses[size]} border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2`}
       ></div>
-      {text && <p className="text-gray-600 text-sm">{text}</p>}
+      {text && <p className="text-gray-600 dark:text-gray-300 text-sm">{text}</p>}
     </div>
   );
 }
@@ -52,8 +52,8 @@ export function LoadingCard({
       <CardContent className="space-y-4">
         {Array.from({ length: rows }).map((_, index) => (
           <div key={index} className="space-y-2">
-            <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" />
-            <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
           </div>
         ))}
       </CardContent>
@@ -79,7 +79,7 @@ export function LoadingTable({
           <tr>
             {Array.from({ length: columns }).map((_, index) => (
               <th key={index} className="px-4 py-2">
-                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
               </th>
             ))}
           </tr>
@@ -89,7 +89,7 @@ export function LoadingTable({
             <tr key={rowIndex}>
               {Array.from({ length: columns }).map((_, colIndex) => (
                 <td key={colIndex} className="px-4 py-2">
-                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 </td>
               ))}
             </tr>
@@ -110,11 +110,11 @@ export function LoadingPage({
   description,
 }: LoadingPageProps) {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="text-center">
         <LoadingSpinner size="lg" />
-        <h2 className="text-xl font-semibold text-gray-900 mt-4">{title}</h2>
-        {description && <p className="text-gray-600 mt-2">{description}</p>}
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mt-4">{title}</h2>
+        {description && <p className="text-gray-600 dark:text-gray-400 mt-2">{description}</p>}
       </div>
     </div>
   );
@@ -159,7 +159,7 @@ export function LoadingOverlay({
     <div className="relative">
       {children}
       {loading && (
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-10">
           <div className="text-center">
             <LoadingSpinner size="lg" text={text} />
           </div>
@@ -191,13 +191,13 @@ export function LoadingState({
   if (error) {
     return (
       errorComponent || (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
           <Card className="max-w-md w-full">
             <CardHeader className="text-center">
-              <CardTitle className="text-red-600">Error</CardTitle>
+              <CardTitle className="text-red-600 dark:text-red-400">Error</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <p className="text-gray-600 mb-4">{error}</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"

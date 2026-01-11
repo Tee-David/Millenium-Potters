@@ -19,8 +19,9 @@ if (loan.createdBy !== req.user.id) {
   throw new ForbiddenError("Insufficient permissions");
 }
 
-// ✅ CORRECT - Allows credit officers to view all loans in their branch
-if (req.user.role === 'CREDIT_OFFICER' && loan.branchId === req.user.branchId) {
+// ✅ CORRECT - Allows credit officers to view loans they created or are assigned to
+if (req.user.role === 'CREDIT_OFFICER' &&
+    (loan.createdById === req.user.id || loan.assignedOfficerId === req.user.id)) {
   // Allow access
 }
 ```
@@ -38,18 +39,24 @@ if (loan.createdById !== userId) {
   return res.status(403).json({ message: "Insufficient permissions" });
 }
 
-// ✅ CORRECT - Allows viewing by role and branch
+// ✅ CORRECT - Allows viewing by role and ownership/assignment
 const userRole = req.user.role;
+const userId = req.user.id;
 const userBranchId = req.user.branchId;
 
 if (userRole === 'CREDIT_OFFICER') {
-  // Credit officers can view loans in their branch
-  if (loan.branchId === userBranchId) {
+  // Credit officers can view loans they created or are assigned to
+  if (loan.createdById === userId || loan.assignedOfficerId === userId) {
     // Allow access
   }
 } else if (userRole === 'ADMIN' || userRole === 'SUPERVISOR') {
   // Admins and supervisors can view all loans
   // Allow access
+} else if (userRole === 'BRANCH_MANAGER') {
+  // Branch managers can view all loans in their branch
+  if (loan.branchId === userBranchId) {
+    // Allow access
+  }
 }
 ```
 
@@ -63,13 +70,18 @@ const loans = await prisma.loan.findMany({
   }
 });
 
-// ✅ CORRECT - Returns loans based on role and branch
+// ✅ CORRECT - Returns loans based on role, ownership, and assignment
 const where: any = {};
 
 if (req.user.role === 'CREDIT_OFFICER') {
+  where.OR = [
+    { createdById: req.user.id },
+    { assignedOfficerId: req.user.id }
+  ];
+} else if (req.user.role === 'BRANCH_MANAGER') {
   where.branchId = req.user.branchId;
 }
-// Admins see all loans, no additional filter needed
+// Admins and supervisors see all loans, no additional filter needed
 
 const loans = await prisma.loan.findMany({ where });
 ```
@@ -91,7 +103,7 @@ Modify the permission checks to follow this hierarchy:
 
 **Viewing Permissions:**
 - **ADMIN/SUPERVISOR**: Can view ALL records across all branches
-- **CREDIT_OFFICER**: Can view ALL records in their assigned branch (not just their own)
+- **CREDIT_OFFICER**: Can view records they created OR records assigned to them by admin
 - **BRANCH_MANAGER**: Can view ALL records in their branch
 
 **Editing Permissions:**
@@ -102,10 +114,11 @@ Modify the permission checks to follow this hierarchy:
 ### Step 3: Test Scenarios
 After fixing, test these scenarios:
 
-1. ✅ Admin creates loan → Credit officer views it → Should work
-2. ✅ Admin creates member → Credit officer views it → Should work
-3. ✅ Credit officer A creates loan → Credit officer B (same branch) views it → Should work
-4. ❌ Credit officer A creates loan → Credit officer C (different branch) views it → Should NOT work
+1. ✅ Admin creates loan and assigns to Credit Officer A → Credit Officer A views it → Should work
+2. ✅ Credit Officer A creates loan → Credit Officer A views it → Should work
+3. ❌ Admin creates loan (not assigned) → Credit Officer B tries to view it → Should NOT work
+4. ❌ Credit Officer A creates loan → Credit Officer B (different officer) views it → Should NOT work
+5. ✅ Branch Manager views any loan in their branch → Should work
 
 ## Quick Backend Fix Template
 
@@ -136,7 +149,7 @@ async getLoanById(req: Request, res: Response) {
     const hasAccess =
       userRole === 'ADMIN' ||
       userRole === 'SUPERVISOR' ||
-      (userRole === 'CREDIT_OFFICER' && loan.branchId === userBranchId) ||
+      (userRole === 'CREDIT_OFFICER' && (loan.createdById === userId || loan.assignedOfficerId === userId)) ||
       (userRole === 'BRANCH_MANAGER' && loan.branchId === userBranchId);
 
     if (!hasAccess) {

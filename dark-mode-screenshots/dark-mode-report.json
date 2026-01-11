@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-01-11T06:44:05.628Z",
+  "findings": [
+    {
+      "step": "Before toggle",
+      "htmlClass": "light",
+      "hasDarkClass": false
+    },
+    {
+      "step": "After toggle",
+      "htmlClass": "dark",
+      "hasDarkClass": true
+    },
+    {
+      "page": "2-dashboard-dark",
+      "url": "http://localhost:3000/dashboard",
+      "snapshot": {
+        "htmlClass": "dark",
+        "bodyClass": "red_hat_display_414f5ed6-module__AF-dpG__variable geist_mono_8d43a2aa-module__8Li5zG__variable font-red-hat antialiased bg-gray-50 dark:bg-gray-900 min-h-screen",
+        "whiteElements": [],
+        "totalWhiteElements": 0
+      }
+    },
+    {
+      "page": "3-loan-dark",
+      "url": "http://localhost:3000/dashboard/business-management/loan",
+      "snapshot": {
+        "htmlClass": "dark",
+        "bodyClass": "red_hat_display_414f5ed6-module__AF-dpG__variable geist_mono_8d43a2aa-module__8Li5zG__variable font-red-hat antialiased bg-gray-50 dark:bg-gray-900 min-h-screen",
+        "whiteElements": [
+          {
+            "tag": "DIV",
+            "classes": "text-center p-8 bg-white rounded-lg shadow-sm border border-gray-200 max-w-md",
+            "id": "",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "lab(98.26 0 0)",
+            "text": "Access DeniedOnly staff members can access loan ma"
+          }
+        ],
+        "totalWhiteElements": 1
+      }
+    },
+    {
+      "page": "4-customer-dark",
+      "url": "http://localhost:3000/dashboard/business-management/customer",
+      "snapshot": {
+        "htmlClass": "dark",
+        "bodyClass": "red_hat_display_414f5ed6-module__AF-dpG__variable geist_mono_8d43a2aa-module__8Li5zG__variable font-red-hat antialiased bg-gray-50 dark:bg-gray-900 min-h-screen",
+        "whiteElements": [
+          {
+            "tag": "DIV",
+            "classes": "text-center p-8 bg-white rounded-lg shadow-sm border border-gray-200 max-w-md",
+            "id": "",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "lab(98.26 0 0)",
+            "text": "Access DeniedOnly staff members can access union m"
+          }
+        ],
+        "totalWhiteElements": 1
+      }
+    },
+    {
+      "page": "5-settings-dark",
+      "url": "http://localhost:3000/dashboard/settings",
+      "snapshot": {
+        "htmlClass": "dark",
+        "bodyClass": "red_hat_display_414f5ed6-module__AF-dpG__variable geist_mono_8d43a2aa-module__8Li5zG__variable font-red-hat antialiased bg-gray-50 dark:bg-gray-900 min-h-screen",
+        "whiteElements": [
+          {
+            "tag": "DIV",
+            "classes": "text-center p-8 bg-white rounded-lg shadow-sm border border-gray-200 max-w-md",
+            "id": "",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "lab(98.26 0 0)",
+            "text": "Access DeniedYou must be signed in to access setti"
+          }
+        ],
+        "totalWhiteElements": 1
+      }
+    }
+  ]
+}

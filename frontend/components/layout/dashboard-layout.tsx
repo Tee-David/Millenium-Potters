@@ -22,10 +22,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Show loading state while fetching user data
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
         </div>
       </div>
     );
@@ -50,7 +50,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Main Content */}
         <div className="flex flex-1 flex-col overflow-hidden">
           <Header onMobileMenuClick={() => setMobileOpen(true)} />
-          <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-gray-50">
+          <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-gray-50 dark:bg-gray-900">
             {children}
           </main>
         </div>
