@@ -13,7 +13,7 @@
 - Total Scenarios: 74
 - Completed: 2 (Scenarios 1.1, 1.2)
 - In Progress: 0
-- Failed/Blocked: 0
+- Failed/Blocked: 1 (Scenario 2.1 - Permission bug: Credit officers cannot create members)
 
 **NOTE:** This test plan has been updated based on actual system functionality:
 - ✅ Admin must assign loans to credit officers (not create as admin)
@@ -36,6 +36,10 @@
 This testing plan covers the **entire scope** of how the LMS will be used in production with different user roles, their actual permissions, and real workflows. We'll test as actual users would work, not just superficial feature checks.
 
 ---
+
+## Test Environment
+
+**Production URL:** https://millennium-potters.vercel.app
 
 ## Test Users Setup & Login Credentials
 
@@ -139,29 +143,25 @@ This testing plan covers the **entire scope** of how the LMS will be used in pro
 
 ### PHASE 2: Union Member Management
 
-- [ ] **Scenario 2.1: Credit Officer Creates Members in Their Unions**
+- [x] **Scenario 2.1: Credit Officer Creates Members in Their Unions** ⚠️ **BLOCKED BY BUG**
 **As Credit Officer A:**
-1. Navigate to Union Members page
-2. Create member in Union A:
-   - Name: "John Trader"
-   - Phone: 080xxxxxxxx
-   - Email: john.trader@test.com
-   - Union: Union A
-3. Create member in Union B:
-   - Name: "Mary Farmer"
-   - Phone: 080xxxxxxxx
-   - Email: mary.farmer@test.com
-   - Union: Union B
-4. Verify both members are visible in members list
-5. Verify members are "Approved" by default (toggle is ON/right)
-6. Try to create member in Union C
+1. ✅ Navigate to Union Members page
+2. ❌ Create member in Union A - **BUG: Access Denied**
+3. ❌ Create member in Union B - **BUG: Access Denied**
+4. ⏭️ Verify both members are visible in members list
+5. ⏭️ Verify members are "Approved" by default (toggle is ON/right)
+6. ⏭️ Try to create member in Union C
+
+**BUG FOUND:**
+- Credit Officer A receives "Access Denied - Only staff members can create union members."
+- This contradicts expected behavior where credit officers should create members
+- Backend permission check appears too restrictive
+- Officer A can VIEW members (sees John Trader created by admin)
+- Officer A CANNOT CREATE new members
 
 **Verify:**
-- Members created successfully in Union A and B
-- Member creation in Union C should be blocked/error
-- Members show as "Approved" by default
-- Toggle switch is in the right position (ON)
-- Can see both union members when filtering by "All Unions"
+- ✅ Officer A can view existing members in their unions (1 member visible)
+- ❌ Officer A blocked from creating members (permission error)
 
 - [ ] **Scenario 2.2: Admin Creates Member and Assigns to Credit Officer**
 **As Admin:**
