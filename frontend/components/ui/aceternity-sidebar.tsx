@@ -454,7 +454,12 @@ function SidebarLink({ item, isActive, open, onClick }: SidebarLinkProps) {
   return (
     <Link
       href={onClick ? "#" : item.href}
-      onClick={onClick}
+      onClick={(e) => {
+        if (onClick) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       className={cn(
         "flex items-center gap-2 group/sidebar py-2 px-2 rounded-md transition-colors",
         open ? "justify-start" : "justify-center",
@@ -576,6 +581,83 @@ function SidebarSection({
   );
 }
 
+// Mobile Sidebar Section with auto-close on navigation
+function MobileSidebarSection({
+  section,
+  expandedSections,
+  toggleSection,
+  isActive,
+  onNavigate,
+}: {
+  section: { title: string; items: NavItem[]; icon?: LucideIcon };
+  expandedSections: string[];
+  toggleSection: (title: string) => void;
+  isActive: (href: string) => boolean;
+  onNavigate: () => void;
+}) {
+  const SectionIcon = section.icon || Folder;
+  const isExpanded = expandedSections.includes(section.title);
+  const hasActiveItem = section.items.some((item) => isActive(item.href));
+
+  return (
+    <div className="flex flex-col">
+      <button
+        onClick={() => toggleSection(section.title)}
+        className={cn(
+          "flex items-center justify-between gap-2 py-2 px-2 rounded-md transition-colors",
+          hasActiveItem
+            ? "bg-green-50 text-green-700"
+            : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <SectionIcon
+            className={cn(
+              "h-5 w-5 flex-shrink-0",
+              hasActiveItem ? "text-green-600" : "text-neutral-500"
+            )}
+          />
+          <span
+            className={cn(
+              "text-xs font-semibold uppercase tracking-wider whitespace-nowrap",
+              hasActiveItem ? "text-green-700" : "text-neutral-500"
+            )}
+          >
+            {section.title}
+          </span>
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 transition-transform",
+            isExpanded ? "rotate-180" : "",
+            hasActiveItem ? "text-green-600" : "text-neutral-400"
+          )}
+        />
+      </button>
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex flex-col gap-1 mt-1 ml-2 pl-4 border-l border-neutral-200 dark:border-neutral-700"
+          >
+            {section.items.map((item) => (
+              <SidebarLink
+                key={item.href}
+                item={item}
+                isActive={isActive(item.href)}
+                open={true}
+                onClick={onNavigate}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // Mobile Sidebar
 export function MobileSidebar({
   userRoles,
@@ -647,16 +729,17 @@ export function MobileSidebar({
                     item={item}
                     isActive={isActive(item.href)}
                     open={true}
+                    onClick={() => setOpen(false)}
                   />
                 ))}
                 {filteredSections.map((section) => (
-                  <SidebarSection
+                  <MobileSidebarSection
                     key={section.title}
                     section={section}
-                    open={true}
                     expandedSections={expandedSections}
                     toggleSection={toggleSection}
                     isActive={isActive}
+                    onNavigate={() => setOpen(false)}
                   />
                 ))}
               </div>

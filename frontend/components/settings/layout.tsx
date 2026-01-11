@@ -13,6 +13,7 @@ import {
   MessageSquare,
   ChevronRight,
   Menu,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -42,6 +43,12 @@ const settingsItems: SettingsItem[] = [
     title: "Company",
     description: "Company Settings",
     icon: Building2,
+  },
+  {
+    id: "theme",
+    title: "Theme & Branding",
+    description: "Customize colors and logos",
+    icon: Palette,
   },
   // {
   //   id: "email",

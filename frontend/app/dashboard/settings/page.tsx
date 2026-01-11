@@ -10,6 +10,7 @@ import { SettingsLayout } from "@/components/settings/layout";
 import { EmailSettings } from "@/components/settings/email-settings";
 import UserProfileSettings from "@/components/settings/user-profile-settings";
 import { PasswordSettingsEnhanced } from "@/components/settings/password-settings-enhanced";
+import { ThemeSettings } from "@/components/settings/theme-settings";
 import { AdminOnly, AccessDenied } from "@/components/auth/RoleGuard";
 
 // Breadcrumb component
@@ -80,6 +81,7 @@ function SettingsPageContent() {
       "user-profile": "User Profile",
       password: "Password",
       company: "Company",
+      theme: "Theme & Branding",
       // email: "Email",
     };
     return titles[sectionId] || "System Settings";
@@ -93,6 +95,8 @@ function SettingsPageContent() {
         return <PasswordSettingsEnhanced />;
       case "company":
         return <CompanySettingsEnhanced />;
+      case "theme":
+        return <ThemeSettings />;
       // case "email":
       //   return <EmailSettings />;
       default:
