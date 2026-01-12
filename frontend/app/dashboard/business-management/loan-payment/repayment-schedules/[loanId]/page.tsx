@@ -179,6 +179,9 @@ const getStatusBadge = (status: string) => {
 };
 
 const getLoanStatusBadge = (status: string) => {
+  if (!status) {
+    return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+  }
   switch (status.toUpperCase()) {
     case "APPROVED":
       return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
