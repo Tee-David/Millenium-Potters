@@ -762,7 +762,7 @@ function LoanScheduleDetailsPageContent() {
                     Term
                   </Label>
                   <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    {loan.termCount} {loan.termUnit.toLowerCase()}(s)
+                    {loan.termCount} {loan.termUnit?.toLowerCase() || ""}(s)
                   </p>
                 </div>
                 <div className="space-y-2">
