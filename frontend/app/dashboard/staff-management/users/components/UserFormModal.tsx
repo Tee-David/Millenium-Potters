@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { UserRole } from "@/lib/enum";
 import { SupervisorOption, UserFormState } from "./types";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { PasswordStrengthIndicator } from "@/components/lightswind/password-strength-indicator";
 
 interface UserFormModalProps {
   mode: "create" | "edit";
@@ -112,16 +113,17 @@ export function UserFormModal({
             </div>
             {mode === "create" && (
               <div>
-                <Label className="text-sm font-medium">Password</Label>
-                <Input
-                  type="password"
+                <PasswordStrengthIndicator
                   value={formState.password}
-                  onChange={(event) =>
-                    onChange({ password: event.target.value })
-                  }
+                  onChange={(value) => onChange({ password: value })}
+                  label="Password"
                   placeholder="Minimum 8 characters"
-                  minLength={8}
-                  className="mt-1.5"
+                  showScore={true}
+                  showVisibilityToggle={true}
+                  inputProps={{
+                    minLength: 8,
+                    required: true,
+                  }}
                 />
               </div>
             )}

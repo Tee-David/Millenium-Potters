@@ -16,6 +16,7 @@ import { User } from "@/types/user";
 import { branchesApi, auth } from "@/lib/api";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { PasswordStrengthIndicator } from "@/components/lightswind/password-strength-indicator";
 
 interface Branch {
   id: string;
@@ -309,17 +310,21 @@ export function UserModal({
 
           {mode === "create" && (
             <div>
-              <Label htmlFor="password">Password *</Label>
-              <Input
-                id="password"
-                type="password"
+              <PasswordStrengthIndicator
                 value={formData.password}
-                onChange={(e) =>
-                  handleChange("password", e.target.value.trim())
+                onChange={(value) => handleChange("password", value.trim())}
+                label={
+                  <>
+                    Password <span className="text-red-500">*</span>
+                  </>
                 }
-                required
                 placeholder="Enter password"
-                minLength={8}
+                showScore={true}
+                showVisibilityToggle={true}
+                inputProps={{
+                  minLength: 8,
+                  required: true,
+                }}
               />
             </div>
           )}

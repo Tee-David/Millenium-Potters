@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { UserRole } from "@/lib/enum";
 import { User } from "@/types/user";
 import { branchesApi, auth, getAccessToken } from "@/lib/api";
+import { PasswordStrengthIndicator } from "@/components/lightswind/password-strength-indicator";
 
 interface Branch {
   id: string;
@@ -274,23 +275,40 @@ export function UserModal({
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password{" "}
-              {mode === "create" && <span className="text-red-500">*</span>}
-            </label>
-            <Input
-              type="password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              placeholder={
-                mode === "create"
-                  ? "Enter password"
-                  : "Leave blank to keep current password"
-              }
-              required={mode === "create"}
-            />
+            {mode === "create" ? (
+              <PasswordStrengthIndicator
+                value={formData.password}
+                onChange={(value) =>
+                  setFormData({ ...formData, password: value })
+                }
+                label={
+                  <>
+                    Password <span className="text-red-500">*</span>
+                  </>
+                }
+                placeholder="Enter password"
+                showScore={true}
+                showVisibilityToggle={true}
+                inputProps={{
+                  required: true,
+                }}
+              />
+            ) : (
+              <>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  placeholder="Leave blank to keep current password"
+                  required={false}
+                />
+              </>
+            )}
           </div>
 
           {/* Phone */}
