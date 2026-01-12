@@ -13,7 +13,9 @@
 - Total Scenarios: 74
 - Completed: 3 (Scenarios 1.1, 1.2, 2.2)
 - In Progress: 0
-- Failed/Blocked: 1 (Scenario 2.1 - Permission bug: Credit officers cannot create members)
+- Failed/Blocked: 2
+  - Scenario 2.1: Credit officers cannot create members (permission bug)
+  - Scenario 2.2: Credit officers blocked from accessing members page (inconsistent permissions)
 
 **NOTE:** This test plan has been updated based on actual system functionality:
 - ✅ Admin must assign loans to credit officers (not create as admin)
@@ -182,15 +184,21 @@ This testing plan covers the **entire scope** of how the LMS will be used in pro
 7. ⏭️ Verify can edit this member
 
 **As Credit Officer A:**
-8. ⏭️ Log in as Credit Officer A
-9. ⏭️ Navigate to Union Members
+8. ✅ Log in as Credit Officer A
+9. ❌ Navigate to Union Members - **BUG: Access Denied**
 10. ⏭️ Verify "David Artisan" is NOT visible (different union)
+
+**BUG FOUND #2:**
+- Credit Officer A receives "Access Denied - Only staff members can access union member management"
+- This contradicts dashboard behavior where Officer A can view members
+- Inconsistent permissions: Can view from dashboard, but blocked from members page
 
 **Verify:**
 - ✅ No permission errors for admin
 - ✅ Correct visibility based on union assignment
 - ✅ Credit Officer B can view admin-created member
 - ✅ Union filtering works correctly
+- ❌ Credit officers blocked from accessing members page directly
 
 - [ ] **Scenario 2.3: Union Member Approval Toggle**
 **As Credit Officer A:**
