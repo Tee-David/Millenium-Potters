@@ -3,8 +3,10 @@
  * Prevents Render backend from sleeping by pinging it every 10 minutes
  */
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api";
+// Remove trailing /api for health endpoint
+const BACKEND_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api"
+).replace(/\/api\/?$/, "");
 
 class KeepAliveService {
   private intervalId: NodeJS.Timeout | null = null;
@@ -55,14 +57,16 @@ class KeepAliveService {
         );
       }
     } catch (error) {
-      console.error("❌ Backend ping failed:", error);
+      // Silently handle fetch failures (backend may be offline/sleeping)
+      console.log("⏭️ Backend ping skipped - server may be offline");
 
       // Don't try alternative endpoints if we just hit a rate limit
       if (!this.shouldSkipPing()) {
         try {
           await this.pingAlternativeEndpoints();
         } catch (altError) {
-          console.error("❌ Alternative ping also failed:", altError);
+          // Silently handle alternative endpoint failures
+          console.log("⏭️ Alternative endpoints also unavailable");
         }
       }
     }

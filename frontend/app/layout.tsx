@@ -36,6 +36,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${redHat.variable} ${geistMono.variable} font-red-hat antialiased bg-gray-50 dark:bg-gray-900 min-h-screen`}
+        suppressHydrationWarning
       >
         <ThemeProvider
           attribute="class"
