@@ -11,7 +11,7 @@
 
 **Progress Tracking:**
 - Total Scenarios: 74
-- Completed: 3 (Scenarios 1.1, 1.2, 2.2)
+- Completed: 4 (Scenarios 1.1, 1.2, 2.2, 3.1)
 - In Progress: 0
 - Failed/Blocked: 2
   - Scenario 2.1: Credit officers cannot create members (permission bug)
@@ -220,27 +220,31 @@ This testing plan covers the **entire scope** of how the LMS will be used in pro
 
 ### PHASE 3: Loan Creation & Permissions (CRITICAL)
 
-- [ ] **Scenario 3.1: Admin Creates Loan by Assigning to Credit Officer**
+- [x] **Scenario 3.1: Admin Creates Loan by Assigning to Credit Officer** ✅ COMPLETED
 **IMPORTANT NOTE:** Admin cannot create loans as themselves. Admin must ASSIGN the loan to a credit officer during creation.
 
 **As Admin:**
 1. Navigate to Loans page
 2. Create new loan:
-   - Member: John Trader (Union A)
-   - Loan Type: Personal Loan
-   - Principal: 100,000
-   - Term: 6 months
-   - **Credit Officer: MUST select Credit Officer A** (required field)
+   - Member: John Trader (Traders Union - Lagos)
+   - Loan Type: Market Women Loan
+   - Principal: ₦10,000
+   - Term: 30 days
+   - Processing Fee: ₦500
+   - Penalty Fee: ₦100/day
+   - **Credit Officer: Officer A** (required field)
 3. Check loan status immediately after creation
 
 **Verify:**
-- Loan created successfully
-- Credit Officer field was REQUIRED (form won't submit without it)
-- Loan is assigned to the selected Credit Officer
-- Loan status is **ACTIVE** (not pending, not approved) because admin created it
-- Loan appears in loans list immediately
-- Loan schedule is generated
-- **Admin did NOT create the loan "as admin" - they assigned it to a credit officer**
+- ✅ Loan created successfully (LN00000002)
+- ✅ Credit Officer field was REQUIRED (form won't submit without it)
+- ✅ Loan is assigned to Officer A (filtered by union)
+- ✅ Loan status is **ACTIVE** because admin created it
+- ✅ Loan appears in loans list immediately
+- ✅ Loan schedule generated: 30 daily payments of ₦333.33
+- ✅ **Interest: ₦0.00** - Confirms system uses processing fees, NOT interest
+- ✅ **Admin did NOT create the loan "as admin" - they assigned it to a credit officer**
+- **Screenshot:** loan-created-success.png
 
 - [ ] **Scenario 3.2: Credit Officer Creates Pending Loan**
 **As Credit Officer A:**
