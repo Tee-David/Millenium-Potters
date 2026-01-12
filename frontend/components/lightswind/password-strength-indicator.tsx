@@ -34,6 +34,11 @@ export interface PasswordStrengthIndicatorProps {
   showScoreNumber?: boolean;
 
   /**
+   * Show password requirements checklist
+   */
+  showRequirements?: boolean;
+
+  /**
    * Function called when password changes
    */
   onChange?: (value: string) => void;
@@ -104,12 +109,24 @@ const strengthLabels = {
   "very-strong": "Very Strong",
 };
 
+// Check individual password requirements
+const checkRequirements = (password: string) => {
+  return {
+    minLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasLowercase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecial: /[^A-Za-z0-9]/.test(password),
+  };
+};
+
 export function PasswordStrengthIndicator({
   value,
   className,
   label = "Password",
   showScore = true,
   showScoreNumber = false,
+  showRequirements = false,
   onChange,
   onStrengthChange,
   placeholder = "Enter your password",
@@ -221,6 +238,43 @@ export function PasswordStrengthIndicator({
         )}>
           {strengthLabels[level]}
         </p>
+      )}
+
+      {/* Password requirements checklist */}
+      {showRequirements && password && (
+        <div className="mt-3 space-y-1.5">
+          <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Password requirements:
+          </p>
+          {(() => {
+            const requirements = checkRequirements(password);
+            const items = [
+              { key: 'minLength', label: 'At least 8 characters', met: requirements.minLength },
+              { key: 'hasUppercase', label: 'At least one uppercase letter', met: requirements.hasUppercase },
+              { key: 'hasLowercase', label: 'At least one lowercase letter', met: requirements.hasLowercase },
+              { key: 'hasNumber', label: 'At least one number', met: requirements.hasNumber },
+              { key: 'hasSpecial', label: 'At least one special character', met: requirements.hasSpecial },
+            ];
+
+            return items.map((item) => (
+              <div key={item.key} className="flex items-center gap-2 text-xs">
+                {item.met ? (
+                  <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-500 flex-shrink-0" />
+                ) : (
+                  <X className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                )}
+                <span className={cn(
+                  "transition-colors",
+                  item.met
+                    ? "text-green-700 dark:text-green-400"
+                    : "text-gray-500 dark:text-gray-400"
+                )}>
+                  {item.label}
+                </span>
+              </div>
+            ));
+          })()}
+        </div>
       )}
     </div>
   );

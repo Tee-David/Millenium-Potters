@@ -288,6 +288,7 @@ export function UserModal({
                 }
                 placeholder="Enter password"
                 showScore={true}
+                showRequirements={true}
                 showVisibilityToggle={true}
                 inputProps={{
                   required: true,

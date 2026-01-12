@@ -119,6 +119,7 @@ export function UserFormModal({
                   label="Password"
                   placeholder="Minimum 8 characters"
                   showScore={true}
+                  showRequirements={true}
                   showVisibilityToggle={true}
                   inputProps={{
                     minLength: 8,
