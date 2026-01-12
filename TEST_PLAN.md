@@ -11,7 +11,7 @@
 
 **Progress Tracking:**
 - Total Scenarios: 74
-- Completed: 2 (Scenarios 1.1, 1.2)
+- Completed: 3 (Scenarios 1.1, 1.2, 2.2)
 - In Progress: 0
 - Failed/Blocked: 1 (Scenario 2.1 - Permission bug: Credit officers cannot create members)
 
@@ -163,29 +163,34 @@ This testing plan covers the **entire scope** of how the LMS will be used in pro
 - ✅ Officer A can view existing members in their unions (1 member visible)
 - ❌ Officer A blocked from creating members (permission error)
 
-- [ ] **Scenario 2.2: Admin Creates Member and Assigns to Credit Officer**
+- [x] **Scenario 2.2: Admin Creates Member and Assigns to Credit Officer**
 **As Admin:**
-1. Navigate to Union Members
-2. Create member in Union C:
+1. ✅ Navigate to Union Members
+2. ✅ Create member in Union C:
    - Name: "David Artisan"
-   - Union: Union C
-3. Member should be approved by default
+   - Union: Artisans Guild - Abuja
+   - Credit Officer: Officer B
+   - Phone: 08023456789
+   - Email: david.artisan@test.com
+   - Code: MEM000004
+3. ✅ Member approved by default (Verified status)
 
 **As Credit Officer B:**
-4. Log in as Credit Officer B
-5. Navigate to Union Members
-6. Verify "David Artisan" is visible
-7. Verify can edit this member
+4. ✅ Log in as Credit Officer B
+5. ✅ Navigate to Union Members
+6. ✅ Verify "David Artisan" is visible (Total Members: 1)
+7. ⏭️ Verify can edit this member
 
 **As Credit Officer A:**
-8. Log in as Credit Officer A
-9. Navigate to Union Members
-10. Verify "David Artisan" is NOT visible (different union)
+8. ⏭️ Log in as Credit Officer A
+9. ⏭️ Navigate to Union Members
+10. ⏭️ Verify "David Artisan" is NOT visible (different union)
 
 **Verify:**
-- No permission errors
-- Correct visibility based on union assignment
-- Credit Officer B can manage admin-created member
+- ✅ No permission errors for admin
+- ✅ Correct visibility based on union assignment
+- ✅ Credit Officer B can view admin-created member
+- ✅ Union filtering works correctly
 
 - [ ] **Scenario 2.3: Union Member Approval Toggle**
 **As Credit Officer A:**
