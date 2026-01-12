@@ -1,0 +1,21 @@
+## Error Type
+Console TypeError
+
+## Error Message
+Cannot read properties of undefined (reading 'toUpperCase')
+
+
+    at getLoanStatusBadge (app/dashboard/business-management/loan-payment/repayment-schedules/[loanId]/page.tsx:182:18)
+    at LoanScheduleDetailsPageContent (app/dashboard/business-management/loan-payment/repayment-schedules/[loanId]/page.tsx:683:16)
+    at Layout (app\dashboard\layout.tsx:6:5)
+
+## Code Frame
+  180 |
+  181 | const getLoanStatusBadge = (status: string) => {
+> 182 |   switch (status.toUpperCase()) {
+      |                  ^
+  183 |     case "APPROVED":
+  184 |       return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+  185 |     case "ACTIVE":
+
+Next.js version: 16.0.10 (Turbopack)

@@ -301,6 +301,7 @@ export class UnionMemberService {
           country: true,
           zipCode: true,
           note: true,
+          isVerified: true,
           unionId: true,
           union: {
             select: {
@@ -883,6 +884,7 @@ export class UnionMemberService {
         country: true,
         zipCode: true,
         note: true,
+        isVerified: true,
         unionId: true,
         union: {
           select: {

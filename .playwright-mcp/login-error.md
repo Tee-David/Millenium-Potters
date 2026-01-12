@@ -1,0 +1,271 @@
+### New console messages
+- [LOG] Fetching user profile... @ http://localhost:3000/_next/static/chunks/9e883_next_dist_4c1928ef....
+- [LOG] Fetching user profile... @ http://localhost:3000/_next/static/chunks/9e883_next_dist_4c1928ef....
+- [LOG] User profile loaded successfully: admin@test.com @ http://localhost:3000/_next/static/chunks/9...
+- [LOG] User profile loaded successfully: admin@test.com @ http://localhost:3000/_next/static/chunks/9...
+- [LOG] Fetching user profile... @ http://localhost:3000/_next/static/chunks/9e883_next_dist_4c1928ef....
+- [LOG] Fetching user profile... @ http://localhost:3000/_next/static/chunks/9e883_next_dist_4c1928ef....
+- [LOG] Fetching user profile... @ http://localhost:3000/_next/static/chunks/9e883_next_dist_4c1928ef....
+- [LOG] Fetching user profile... @ http://localhost:3000/_next/static/chunks/9e883_next_dist_4c1928ef....
+- [LOG] Fetching user profile... @ http://localhost:3000/_next/static/chunks/9e883_next_dist_4c1928ef....
+- [LOG] Fetching user profile... @ http://localhost:3000/_next/static/chunks/9e883_next_dist_4c1928ef....
+- [LOG] User profile loaded successfully: admin@test.com @ http://localhost:3000/_next/static/chunks/9...
+- [LOG] User profile loaded successfully: admin@test.com @ http://localhost:3000/_next/static/chunks/9...
+- [LOG] User profile loaded successfully: admin@test.com @ http://localhost:3000/_next/static/chunks/9...
+- [LOG] User profile loaded successfully: admin@test.com @ http://localhost:3000/_next/static/chunks/9...
+- [LOG] User profile loaded successfully: admin@test.com @ http://localhost:3000/_next/static/chunks/9...
+- [LOG] User profile loaded successfully: admin@test.com @ http://localhost:3000/_next/static/chunks/9...
+
+### Page state
+- Page URL: http://localhost:3000/dashboard
+- Page Title: Millenium Potters
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e94]:
+    - generic [ref=e95]:
+      - generic [ref=e96]:
+        - link "Company Logo" [ref=e97] [cursor=pointer]:
+          - /url: /dashboard
+          - img "Company Logo" [ref=e98]
+        - generic [ref=e99]:
+          - link [ref=e100] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e101]
+          - button [ref=e107]:
+            - img [ref=e109]
+          - button [ref=e114]:
+            - img [ref=e116]
+          - button [ref=e120]:
+            - img [ref=e122]
+          - button [ref=e126]:
+            - img [ref=e128]
+      - generic [ref=e139]:
+        - link [ref=e140] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e141]
+        - link [ref=e145] [cursor=pointer]:
+          - /url: "#"
+          - img [ref=e146]
+        - link [ref=e149] [cursor=pointer]:
+          - /url: "#"
+          - img [ref=e150]
+    - generic [ref=e151]:
+      - banner [ref=e152]:
+        - generic [ref=e153]:
+          - button "Toggle sidebar" [ref=e155]:
+            - img [ref=e156]
+          - button "Toggle theme" [ref=e158]:
+            - img [ref=e160]
+      - main [ref=e162]:
+        - generic [ref=e163]:
+          - generic [ref=e166]:
+            - generic [ref=e167]:
+              - img [ref=e169]
+              - generic [ref=e171]:
+                - heading "Dashboard Overview" [level=1] [ref=e172]
+                - paragraph [ref=e173]: Welcome back, admin • Monday, January 12, 2026
+            - generic [ref=e174]:
+              - button "Refresh" [ref=e175] [cursor=pointer]:
+                - img
+                - generic [ref=e176]: Refresh
+              - link "Add Member" [ref=e177] [cursor=pointer]:
+                - /url: /dashboard/business-management/customer
+                - button "Add Member" [ref=e178]:
+                  - img
+                  - generic [ref=e179]: Add Member
+              - link "New Loan" [ref=e180] [cursor=pointer]:
+                - /url: /dashboard/business-management/loan
+                - button "New Loan" [ref=e181]:
+                  - img
+                  - generic [ref=e182]: New Loan
+          - navigation [ref=e185]:
+            - button "Overview" [ref=e186]:
+              - img [ref=e187]
+              - text: Overview
+            - button "Loans" [ref=e189]:
+              - img [ref=e190]
+              - text: Loans
+            - button "Union Members" [ref=e192]:
+              - img [ref=e193]
+              - text: Union Members
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - paragraph [ref=e203]: Total Union Members
+                  - paragraph [ref=e204]: "3"
+                  - generic [ref=e205]:
+                    - img [ref=e206]
+                    - generic [ref=e209]: +2%
+                    - generic [ref=e210]: vs last month
+                - img [ref=e212]
+              - generic [ref=e218]:
+                - generic [ref=e219]:
+                  - paragraph [ref=e220]: Active Loans
+                  - paragraph [ref=e221]: "0"
+                  - generic [ref=e222]:
+                    - img [ref=e223]
+                    - generic [ref=e226]: +0%
+                    - generic [ref=e227]: vs last month
+                - img [ref=e229]
+              - generic [ref=e233]:
+                - generic [ref=e234]:
+                  - paragraph [ref=e235]: Total Revenue
+                  - paragraph [ref=e236]: ₦15,000
+                  - generic [ref=e237]:
+                    - img [ref=e238]
+                    - generic [ref=e241]: +7%
+                    - generic [ref=e242]: vs last month
+                - img [ref=e244]
+              - generic [ref=e249]:
+                - generic [ref=e250]:
+                  - paragraph [ref=e251]: Overdue Payments
+                  - paragraph [ref=e252]: "0"
+                  - generic [ref=e253]:
+                    - img [ref=e254]
+                    - generic [ref=e257]: +0%
+                    - generic [ref=e258]: vs last month
+                - img [ref=e260]
+            - generic [ref=e262]:
+              - generic [ref=e265]:
+                - generic [ref=e266]:
+                  - paragraph [ref=e267]: Pending Applications
+                  - paragraph [ref=e268]: "0"
+                - img [ref=e270]
+              - generic [ref=e275]:
+                - generic [ref=e276]:
+                  - paragraph [ref=e277]: Total Repayments
+                  - paragraph [ref=e278]: ₦0
+                - img [ref=e280]
+              - generic [ref=e284]:
+                - generic [ref=e285]:
+                  - paragraph [ref=e286]: Avg Loan Amount
+                  - paragraph [ref=e287]: ₦0
+                - img [ref=e289]
+              - generic [ref=e295]:
+                - generic [ref=e296]:
+                  - paragraph [ref=e297]: Collection Rate
+                  - paragraph [ref=e298]: 0.0%
+                - img [ref=e300]
+            - generic [ref=e303]:
+              - generic [ref=e304]:
+                - generic [ref=e305]:
+                  - generic [ref=e307]:
+                    - generic [ref=e308]:
+                      - img [ref=e309]
+                      - text: Recent Loans
+                    - link "View All" [ref=e311] [cursor=pointer]:
+                      - /url: /dashboard/business-management/loan
+                      - button "View All" [ref=e312]:
+                        - text: View All
+                        - img
+                  - generic [ref=e315]:
+                    - generic [ref=e316]:
+                      - img [ref=e318]
+                      - generic [ref=e320]:
+                        - paragraph [ref=e321]: LN00000001
+                        - paragraph
+                    - generic [ref=e322]:
+                      - paragraph [ref=e323]: ₦15,000
+                      - generic [ref=e324]: PENDING_APPROVAL
+                - generic [ref=e325]:
+                  - generic [ref=e327]:
+                    - generic [ref=e328]:
+                      - img [ref=e329]
+                      - text: Recent Union Members
+                    - link "View All" [ref=e333] [cursor=pointer]:
+                      - /url: /dashboard/business-management/customer
+                      - button "View All" [ref=e334]:
+                        - text: View All
+                        - img
+                  - generic [ref=e336]:
+                    - generic [ref=e337]:
+                      - generic [ref=e338]:
+                        - img [ref=e340]
+                        - generic [ref=e344]:
+                          - paragraph [ref=e345]: John Trader
+                          - paragraph [ref=e346]: john.trader@test.com
+                      - generic [ref=e347]:
+                        - paragraph [ref=e348]: 1/11/2026
+                        - generic [ref=e349]: MEM000003
+                    - generic [ref=e350]:
+                      - generic [ref=e351]:
+                        - img [ref=e353]
+                        - generic [ref=e357]:
+                          - paragraph [ref=e358]: Credit Debtor
+                          - paragraph [ref=e359]: "08056646221"
+                      - generic [ref=e360]:
+                        - paragraph [ref=e361]: 1/10/2026
+                        - generic [ref=e362]: MEM000002
+                    - generic [ref=e363]:
+                      - generic [ref=e364]:
+                        - img [ref=e366]
+                        - generic [ref=e370]:
+                          - paragraph [ref=e371]: Mr Debtor
+                          - paragraph [ref=e372]: "07087042235"
+                      - generic [ref=e373]:
+                        - paragraph [ref=e374]: 1/10/2026
+                        - generic [ref=e375]: MEM000001
+              - generic [ref=e376]:
+                - generic [ref=e377]:
+                  - generic [ref=e379]:
+                    - img [ref=e380]
+                    - text: Top Unions
+                  - generic [ref=e385]:
+                    - generic [ref=e386]:
+                      - generic [ref=e387]:
+                        - generic [ref=e389]: "#1"
+                        - generic [ref=e390]:
+                          - paragraph [ref=e391]: Union 2
+                          - paragraph [ref=e392]: 1 loans
+                      - paragraph [ref=e393]: ₦15,000
+                    - generic [ref=e394]:
+                      - generic [ref=e395]:
+                        - generic [ref=e397]: "#2"
+                        - generic [ref=e398]:
+                          - paragraph [ref=e399]: Artisans Guild - Abuja
+                          - paragraph [ref=e400]: 0 loans
+                      - paragraph [ref=e401]: ₦0
+                    - generic [ref=e402]:
+                      - generic [ref=e403]:
+                        - generic [ref=e405]: "#3"
+                        - generic [ref=e406]:
+                          - paragraph [ref=e407]: Farmers Cooperative - Ibadan
+                          - paragraph [ref=e408]: 0 loans
+                      - paragraph [ref=e409]: ₦0
+                    - generic [ref=e410]:
+                      - generic [ref=e411]:
+                        - generic [ref=e413]: "#4"
+                        - generic [ref=e414]:
+                          - paragraph [ref=e415]: Traders Union - Lagos
+                          - paragraph [ref=e416]: 0 loans
+                      - paragraph [ref=e417]: ₦0
+                    - generic [ref=e418]:
+                      - generic [ref=e419]:
+                        - generic [ref=e421]: "#5"
+                        - generic [ref=e422]:
+                          - paragraph [ref=e423]: Union 1
+                          - paragraph [ref=e424]: 0 loans
+                      - paragraph [ref=e425]: ₦0
+                - generic [ref=e426]:
+                  - generic [ref=e428]:
+                    - img [ref=e429]
+                    - text: Quick Stats
+                  - generic [ref=e432]:
+                    - generic [ref=e433]:
+                      - generic [ref=e434]: Loan Approval Rate
+                      - generic [ref=e435]: 0.0%
+                    - progressbar [ref=e436]
+                    - generic [ref=e438]:
+                      - generic [ref=e439]: Collection Rate
+                      - generic [ref=e440]: 0.0%
+                    - progressbar [ref=e441]
+                    - generic [ref=e443]:
+                      - generic [ref=e444]: Average Loan
+                      - generic [ref=e445]: ₦0
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e89] [cursor=pointer]:
+    - img [ref=e90]
+  - alert [ref=e93]
+```

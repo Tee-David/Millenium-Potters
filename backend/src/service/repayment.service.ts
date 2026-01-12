@@ -813,8 +813,8 @@ export class RepaymentService {
     const fullLoanData = await prisma.loan.findUnique({
       where: { id: loanId },
       include: {
-        customer: true,
-        branch: true,
+        unionMember: true,
+        union: true,
         loanType: true,
         assignedOfficer: {
           select: {
@@ -865,8 +865,15 @@ export class RepaymentService {
       orderBy: { sequence: "asc" },
     });
 
+    // Transform unionMember to customer for frontend compatibility
+    const loanWithCustomer = fullLoanData ? {
+      ...fullLoanData,
+      customer: fullLoanData.unionMember,
+      branch: fullLoanData.union,
+    } : null;
+
     return {
-      loan: fullLoanData,
+      loan: loanWithCustomer,
       schedule,
     };
   }

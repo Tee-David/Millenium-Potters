@@ -450,13 +450,17 @@ interface SidebarLinkProps {
 
 function SidebarLink({ item, isActive, open, onClick }: SidebarLinkProps) {
   const Icon = item.icon;
+  const isNavigationLink = item.href !== "#";
 
   return (
     <Link
-      href={onClick ? "#" : item.href}
+      href={item.href}
       onClick={(e) => {
         if (onClick) {
-          e.preventDefault();
+          // For non-navigation links (like logout), prevent default
+          if (!isNavigationLink) {
+            e.preventDefault();
+          }
           onClick();
         }
       }}

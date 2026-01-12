@@ -106,9 +106,9 @@ export class LoanService {
     // Determine initial loan status based on user role
     let initialStatus: LoanStatus = LoanStatus.DRAFT;
     if (userRole === Role.ADMIN) {
-      initialStatus = LoanStatus.APPROVED;
+      initialStatus = LoanStatus.ACTIVE; // Admin-created loans are active immediately
     } else if (userRole === Role.CREDIT_OFFICER) {
-      initialStatus = LoanStatus.PENDING_APPROVAL;
+      initialStatus = LoanStatus.PENDING_APPROVAL; // Credit officer loans need approval
     }
 
     // Create loan
@@ -320,8 +320,24 @@ export class LoanService {
     };
 
     // Role-based filtering
-    if (userRole === Role.CREDIT_OFFICER && userUnionId) {
-      where.unionId = userUnionId;
+    if (userRole === Role.CREDIT_OFFICER && userId) {
+      // Get all unions managed by this credit officer
+      const userUnions = await prisma.union.findMany({
+        where: {
+          creditOfficerId: userId,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+
+      const unionIds = userUnions.map(u => u.id);
+
+      if (unionIds.length > 0) {
+        where.unionId = { in: unionIds };
+      } else {
+        // Credit officer has no unions, return empty result
+        where.unionId = "no-unions-assigned";
+      }
     }
 
     // Apply additional filters
@@ -455,14 +471,25 @@ export class LoanService {
     } else if (userRole === Role.SUPERVISOR) {
       // SUPERVISOR can view all loans - they supervise credit officers
       console.log("SUPERVISOR user - allowing access to loan:", id);
-    } else if (userRole === Role.CREDIT_OFFICER && userUnionId) {
+    } else if (userRole === Role.CREDIT_OFFICER && userId) {
       // CREDIT_OFFICER can only view loans in their union(s)
-      if (loan.unionId !== userUnionId) {
+      // Get all unions managed by this credit officer
+      const userUnions = await prisma.union.findMany({
+        where: {
+          creditOfficerId: userId,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+
+      const unionIds = userUnions.map(u => u.id);
+
+      if (!unionIds.includes(loan.unionId)) {
         throw new Error("You do not have permission to view this loan");
       }
       console.log(
         "CREDIT_OFFICER user - allowing access to loan in union:",
-        userUnionId
+        loan.unionId
       );
     }
 
@@ -798,12 +825,20 @@ export class LoanService {
     } else if (userRole === Role.SUPERVISOR) {
       // SUPERVISOR can view all loan schedules - they supervise credit officers
       console.log("SUPERVISOR user - allowing access to loan schedule:", id);
-    } else if (userRole === Role.CREDIT_OFFICER) {
-      // CREDIT_OFFICER can view loans they are assigned to or created
-      if (
-        (!loan.assignedOfficerId || loan.assignedOfficerId !== userId) &&
-        (!loan.createdByUserId || loan.createdByUserId !== userId)
-      ) {
+    } else if (userRole === Role.CREDIT_OFFICER && userId) {
+      // CREDIT_OFFICER can view loans in their unions
+      // Get all unions managed by this credit officer
+      const userUnions = await prisma.union.findMany({
+        where: {
+          creditOfficerId: userId,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+
+      const unionIds = userUnions.map(u => u.id);
+
+      if (!unionIds.includes(loan.unionId)) {
         throw new Error("You do not have permission to view this loan");
       }
       console.log("CREDIT_OFFICER user - allowing access to loan schedule:", id);

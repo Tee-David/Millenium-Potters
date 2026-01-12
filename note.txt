@@ -1,0 +1,14 @@
+Use this to Review TEST_PLAN.md
+create all the logins. put them in test_plan.md so that you can reuse them when you need.
+Even if admin is creating loan; he can only do so by selecting/assigning as a credit officer; he can't create the loan as himself; adjust this in test_plan.md. There's nothing like admin-created loans; loans created by admins are assigned to a credit officer. check the form. That's how it normally works. This part of the plan is wrong. adjust accordingly.
+The 'interest' loan type test part too looks wrong than what's in the loan type form. No interest but processing fee which is collected during loan creation... Adjust test ccordingly. Look at all of the loan statuses and check the right ones.
+Same customer can't have multiple active loans unless one is paid off/completed. Check loan form well.
+Admin can edit the loan before approval and after, credit officer can edit it until it's approved but not after it approved. Logs should show this. Warning should show that changes to loan will be logged
+With regards to the tests. Check all forms and make sure you understand what they look like and what they do.
+Check the overpayments thing, there's no overpayments. you should be able to see total amount left to pay and not be able to pay above it.
+Check the right payment methods.
+No editing of payments. Even as admin. I don't want credit officers messing with payments; they can collect payments but not edit or delete. I don't want confusion
+There's two kinds of payment collection 'due today' and 'custom payment amount'.
+Exports is csv, xlsx and pdf.
+I want to be able to change sidebar logos and login page logos from the settings page. Also be able to configure colors of light/dark mode from there.
+Let me know suggestions after reviewand tests to improve performance and thinsg that are within our goal, scope and infrastructure. 
