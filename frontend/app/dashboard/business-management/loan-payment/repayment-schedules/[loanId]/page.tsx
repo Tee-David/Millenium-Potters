@@ -817,7 +817,7 @@ function LoanScheduleDetailsPageContent() {
                   Customer Name
                 </Label>
                 <p className="text-sm font-semibold text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  {loan.customer.firstName} {loan.customer.lastName}
+                  {loan.customer?.firstName || "N/A"} {loan.customer?.lastName || ""}
                 </p>
               </div>
               <div className="space-y-2">
@@ -825,7 +825,7 @@ function LoanScheduleDetailsPageContent() {
                   Customer Code
                 </Label>
                 <p className="text-sm font-mono text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  {loan.customer.code}
+                  {loan.customer?.code || "N/A"}
                 </p>
               </div>
               <div className="space-y-2">
@@ -833,7 +833,7 @@ function LoanScheduleDetailsPageContent() {
                   Phone Number
                 </Label>
                 <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  {loan.customer.phone}
+                  {loan.customer?.phone || "N/A"}
                 </p>
               </div>
               <div className="space-y-2">
@@ -841,7 +841,7 @@ function LoanScheduleDetailsPageContent() {
                   Email Address
                 </Label>
                 <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  {loan.customer.email || "N/A"}
+                  {loan.customer?.email || "N/A"}
                 </p>
               </div>
               <div className="space-y-2">
@@ -849,7 +849,7 @@ function LoanScheduleDetailsPageContent() {
                   Address
                 </Label>
                 <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  {loan.customer.address}
+                  {loan.customer?.address || "N/A"}
                 </p>
               </div>
             </CardContent>
