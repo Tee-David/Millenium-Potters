@@ -2037,7 +2037,10 @@ export default function RepaymentSchedulePage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="font-bold text-blue-600 text-sm">
-                            {formatCurrency(metrics.dueToday)}
+                            {/* Show actual schedule item remaining (totalDue - paidAmount) */}
+                            {formatCurrency(
+                              Math.max(0, safeParseNumber(item.totalDue) - safeParseNumber(item.paidAmount))
+                            )}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -2048,9 +2051,15 @@ export default function RepaymentSchedulePage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                handlePayDueToday(item, metrics.dueToday)
-                              }
+                              onClick={() => {
+                                // Use the actual schedule item's remaining amount (totalDue - paidAmount)
+                                // instead of the calculated dueToday to ensure full payment marks item as PAID
+                                const scheduleRemaining = Math.max(
+                                  0,
+                                  safeParseNumber(item.totalDue) - safeParseNumber(item.paidAmount)
+                                );
+                                handlePayDueToday(item, scheduleRemaining);
+                              }}
                               className="text-xs bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-700"
                               disabled={metrics.totalLeftToPay === 0 || loading}
                             >
@@ -2191,13 +2200,15 @@ export default function RepaymentSchedulePage() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Due Today</p>
+                        <p className="text-gray-500">Due for This Schedule</p>
                         <p className="font-semibold text-blue-600">
+                          {/* Show actual schedule item remaining amount */}
                           {formatCurrency(
-                            calculateLoanMetrics(
-                              paymentModal.loanData.loan,
-                              paymentModal.loanData.paidAmount
-                            ).dueToday
+                            Math.max(
+                              0,
+                              safeParseNumber(paymentModal.loanData.totalDue) -
+                                safeParseNumber(paymentModal.loanData.paidAmount)
+                            )
                           )}
                         </p>
                       </div>
