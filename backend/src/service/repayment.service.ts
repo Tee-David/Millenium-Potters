@@ -37,6 +37,7 @@ interface CreateRepaymentData {
   method: RepaymentMethod;
   reference?: string;
   notes?: string;
+  scheduleItemId?: string; // Optional: target specific schedule item for payment
 }
 
 export class RepaymentService {
@@ -96,8 +97,8 @@ export class RepaymentService {
       },
     });
 
-    // Allocate payment to schedule items
-    await this.allocatePayment(repayment.id, data.loanId, amount);
+    // Allocate payment to schedule items (prioritize specific schedule item if provided)
+    await this.allocatePayment(repayment.id, data.loanId, amount, data.scheduleItemId);
 
     // Recalculate remaining schedules to redistribute the remaining balance
     await this.recalculateRemainingSchedules(data.loanId);
@@ -111,10 +112,11 @@ export class RepaymentService {
   static async allocatePayment(
     repaymentId: string,
     loanId: string,
-    amount: Decimal
+    amount: Decimal,
+    targetScheduleItemId?: string
   ) {
     // Get pending and partial schedule items ordered by due date
-    const scheduleItems = await prisma.repaymentScheduleItem.findMany({
+    let scheduleItems = await prisma.repaymentScheduleItem.findMany({
       where: {
         loanId,
         status: {
@@ -128,6 +130,16 @@ export class RepaymentService {
       },
       orderBy: { dueDate: "asc" },
     });
+
+    // If a specific schedule item is targeted, prioritize it by moving it to the front
+    if (targetScheduleItemId) {
+      const targetIndex = scheduleItems.findIndex(item => item.id === targetScheduleItemId);
+      if (targetIndex > 0) {
+        const [targetItem] = scheduleItems.splice(targetIndex, 1);
+        scheduleItems.unshift(targetItem);
+        console.log(`Prioritizing schedule item ${targetScheduleItemId} for payment allocation`);
+      }
+    }
 
     let remainingAmount = amount;
     const allocations = [];

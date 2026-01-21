@@ -487,6 +487,8 @@ export default function RepaymentSchedulePage() {
               ? "Due Today"
               : "Custom Amount"
           }`,
+        // Include schedule item ID to ensure payment is allocated to this specific schedule
+        scheduleItemId: paymentModal.loanData.id,
       };
 
       // Call repayment API
@@ -836,6 +838,8 @@ export default function RepaymentSchedulePage() {
         amount: amount,
         method: "CASH" as const,
         notes: `Payment for schedule item ${paymentModal.loanData.sequence}`,
+        // Include schedule item ID to ensure payment is allocated to this specific schedule
+        scheduleItemId: paymentModal.loanData.id,
       };
 
       await repaymentsApi.create(repaymentData);
