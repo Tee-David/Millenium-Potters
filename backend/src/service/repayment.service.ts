@@ -99,6 +99,9 @@ export class RepaymentService {
     // Allocate payment to schedule items
     await this.allocatePayment(repayment.id, data.loanId, amount);
 
+    // Recalculate remaining schedules to redistribute the remaining balance
+    await this.recalculateRemainingSchedules(data.loanId);
+
     // Check if loan is fully paid
     await this.checkLoanCompletion(data.loanId);
 
@@ -169,6 +172,62 @@ export class RepaymentService {
         data: allocations,
       });
     }
+  }
+
+  /**
+   * Recalculate remaining schedule items after a payment
+   * Due per period = remaining total / remaining periods
+   */
+  static async recalculateRemainingSchedules(loanId: string) {
+    // Get all unpaid schedule items (PENDING, PARTIAL, OVERDUE)
+    const unpaidItems = await prisma.repaymentScheduleItem.findMany({
+      where: {
+        loanId,
+        status: {
+          in: [ScheduleStatus.PENDING, ScheduleStatus.PARTIAL, ScheduleStatus.OVERDUE],
+        },
+        deletedAt: null,
+      },
+      orderBy: { sequence: "asc" },
+    });
+
+    if (unpaidItems.length === 0) {
+      console.log("No unpaid items to recalculate");
+      return;
+    }
+
+    // Calculate remaining principal across all unpaid items
+    let remainingPrincipal = new Decimal(0);
+    for (const item of unpaidItems) {
+      // For each item, remaining = principalDue - (paidAmount applied to principal)
+      // Since we don't have interest, paidAmount goes to principal
+      const itemRemaining = item.principalDue.minus(item.paidAmount);
+      if (itemRemaining.gt(0)) {
+        remainingPrincipal = remainingPrincipal.plus(itemRemaining);
+      }
+    }
+
+    console.log(`Recalculating schedules: ${remainingPrincipal.toString()} remaining across ${unpaidItems.length} items`);
+
+    // Redistribute remaining principal equally across remaining periods
+    const newPrincipalPerPeriod = remainingPrincipal.div(unpaidItems.length);
+
+    // Update each unpaid item with the new amount
+    for (const item of unpaidItems) {
+      // Keep the paid amount, just update what's still due
+      const alreadyPaid = item.paidAmount;
+      const newTotalDue = newPrincipalPerPeriod.plus(alreadyPaid);
+
+      await prisma.repaymentScheduleItem.update({
+        where: { id: item.id },
+        data: {
+          principalDue: newPrincipalPerPeriod,
+          totalDue: newPrincipalPerPeriod, // No interest, so totalDue = principalDue
+        },
+      });
+    }
+
+    console.log(`Updated ${unpaidItems.length} schedule items with new amount: ${newPrincipalPerPeriod.toString()} per period`);
   }
 
   static async checkLoanCompletion(loanId: string) {
@@ -727,6 +786,13 @@ export class RepaymentService {
                     name: true,
                   },
                 },
+                // Include all schedule items to calculate totalPaid for the loan
+                scheduleItems: {
+                  where: { deletedAt: null },
+                  select: {
+                    paidAmount: true,
+                  },
+                },
               },
             },
           },
@@ -741,8 +807,31 @@ export class RepaymentService {
         `Found ${schedules.length} repayment schedules out of ${total} total`
       );
 
+      // Transform schedules to include totalPaid calculated from all schedule items
+      const schedulesWithTotalPaid = schedules.map((schedule: any) => {
+        const totalPaid = schedule.loan.scheduleItems.reduce(
+          (sum: number, item: any) => sum + parseFloat(item.paidAmount || 0),
+          0
+        );
+
+        // Calculate totalOutstanding (what's left to pay for the whole loan)
+        const principalAmount = parseFloat(schedule.loan.principalAmount || 0);
+        const totalOutstanding = Math.max(0, principalAmount - totalPaid);
+
+        return {
+          ...schedule,
+          loan: {
+            ...schedule.loan,
+            totalPaid,
+            totalOutstanding,
+            // Remove scheduleItems from response to keep it clean
+            scheduleItems: undefined,
+          },
+        };
+      });
+
       return {
-        schedules,
+        schedules: schedulesWithTotalPaid,
         total,
         page: filters.page,
         limit: filters.limit,

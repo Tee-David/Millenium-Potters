@@ -441,6 +441,19 @@ function LoanListPageContent() {
                       role: loan.assignedOfficer.role || "",
                     }
                   : undefined,
+                // Payment summary fields from backend
+                totalPaid:
+                  typeof loan.totalPaid === "number"
+                    ? loan.totalPaid
+                    : typeof loan.totalPaid === "string"
+                    ? parseFloat(loan.totalPaid) || 0
+                    : 0,
+                totalOutstanding:
+                  typeof loan.totalOutstanding === "number"
+                    ? loan.totalOutstanding
+                    : typeof loan.totalOutstanding === "string"
+                    ? parseFloat(loan.totalOutstanding) || 0
+                    : undefined,
               })
             )
             .filter((loan: LoanWithRelations) => {
@@ -811,6 +824,7 @@ function LoanListPageContent() {
         termCount: loan.termCount,
         termUnit: loan.termUnit,
         startDate: loan.startDate,
+        endDate: loan.endDate,
         processingFeeAmount: loan.processingFeeAmount,
         penaltyFeePerDayAmount: loan.penaltyFeePerDayAmount,
         processingFeeCollected: loan.processingFeeCollected,
@@ -818,6 +832,12 @@ function LoanListPageContent() {
         assignedOfficerId: loan.assignedOfficerId,
         documents: loan.documents,
         updatedAt: loan.updatedAt,
+        // Include nested objects for export
+        unionMember: loan.unionMember,
+        union: loan.union,
+        loanType: loan.loanType,
+        createdBy: loan.createdBy || loan.createdByUser,
+        assignedOfficer: loan.assignedOfficer,
       }));
 
       switch (type) {
@@ -1108,7 +1128,7 @@ function LoanListPageContent() {
       {/* Main Content */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 space-y-8">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           <SummaryCard
             title="Total Loans"
             value={loans.length}
@@ -1138,6 +1158,27 @@ function LoanListPageContent() {
             color="teal"
             subtitle="Principal amount"
             trend={{ value: 15, isPositive: true }}
+          />
+          <SummaryCard
+            title="Total Left to Pay"
+            value={formatNaira(
+              loans
+                .filter(
+                  (loan) =>
+                    loan.status === "ACTIVE" || loan.status === "APPROVED"
+                )
+                .reduce((sum, loan) => {
+                  // Use totalOutstanding if available, otherwise calculate from principal
+                  const outstanding =
+                    loan.totalOutstanding !== undefined
+                      ? loan.totalOutstanding
+                      : Number(loan.principalAmount) - (loan.totalPaid || 0);
+                  return sum + outstanding;
+                }, 0)
+            )}
+            icon={<AlertCircle className="h-6 w-6 text-white" />}
+            color="orange"
+            subtitle="Active loans outstanding"
           />
           <SummaryCard
             title="Pending Approval"
@@ -1653,23 +1694,26 @@ function LoanListPageContent() {
                               <span className="text-lg">👨‍💼</span>
                               <div className="flex flex-col">
                                 <span className="font-medium text-slate-900">
-                                  {(loan as any).assignedOfficer?.firstName &&
-                                  (loan as any).assignedOfficer?.lastName
-                                    ? `${
-                                        (loan as any).assignedOfficer.firstName
-                                      } ${
-                                        (loan as any).assignedOfficer.lastName
-                                      }`
-                                    : (loan as any).assignedOfficer?.email ||
-                                      "Unknown Officer"}
+                                  {(() => {
+                                    // Try assignedOfficer first
+                                    const officer = (loan as any).assignedOfficer || (loan as any).createdByUser;
+                                    if (officer?.firstName && officer?.lastName) {
+                                      return `${officer.firstName} ${officer.lastName}`;
+                                    }
+                                    if (officer?.email) {
+                                      return officer.email;
+                                    }
+                                    return "Unknown Officer";
+                                  })()}
                                 </span>
-                                {(loan as any).assignedOfficer?.role && (
-                                  <span className="text-xs text-slate-500 capitalize">
-                                    {(loan as any).assignedOfficer.role
-                                      .replace("_", " ")
-                                      .toLowerCase()}
-                                  </span>
-                                )}
+                                {(() => {
+                                  const officer = (loan as any).assignedOfficer || (loan as any).createdByUser;
+                                  return officer?.role ? (
+                                    <span className="text-xs text-slate-500 capitalize">
+                                      {officer.role.replace("_", " ").toLowerCase()}
+                                    </span>
+                                  ) : null;
+                                })()}
                               </div>
                             </div>
                           </TableCell>

@@ -119,6 +119,9 @@ interface RepaymentSchedule {
       name: string;
       email: string;
     };
+    // Calculated fields from backend
+    totalPaid?: number;
+    totalOutstanding?: number;
   };
 }
 
@@ -193,13 +196,19 @@ const calculateLoanMetrics = (
   paidAmount: string | number
 ) => {
   // Validate inputs and provide defaults using safe parsing
-  const safePaidAmount = safeParseNumber(paidAmount);
+  // Use loan.totalPaid (sum of all schedule items) if available, otherwise fallback to individual paidAmount
+  const safePaidAmount = loan?.totalPaid !== undefined
+    ? safeParseNumber(loan.totalPaid)
+    : safeParseNumber(paidAmount);
   const safePrincipalAmount = safeParseNumber(loan?.principalAmount);
   const safePenaltyFeePerDay = safeParseNumber(loan?.penaltyFeePerDayAmount);
   const safeDeadline =
     loan?.endDate || loan?.startDate || new Date().toISOString();
 
-  const totalLeft = Math.max(0, safePrincipalAmount - safePaidAmount);
+  // Use loan.totalOutstanding if available (calculated by backend), otherwise calculate here
+  const totalLeft = loan?.totalOutstanding !== undefined
+    ? safeParseNumber(loan.totalOutstanding)
+    : Math.max(0, safePrincipalAmount - safePaidAmount);
   const daysRemaining = calculateDaysRemaining(safeDeadline);
 
   // Calculate the proper daily repayment amount based on loan terms
@@ -211,6 +220,8 @@ const calculateLoanMetrics = (
     safePrincipalAmount,
     safePaidAmount,
     totalLeft,
+    loanTotalPaid: loan?.totalPaid,
+    loanTotalOutstanding: loan?.totalOutstanding,
     dailyRepaymentAmount,
     termCount: loan?.termCount,
     termUnit: loan?.termUnit,
@@ -321,16 +332,49 @@ export default function RepaymentSchedulePage() {
   const [amountTo, setAmountTo] = useState<string>("");
 
   // Filter mode controls
-  const [showTodayOnly, setShowTodayOnly] = useState<boolean>(true); // Default to Today Only per client request
-  const [filterMode, setFilterMode] = useState<"today" | "single" | "range">(
-    "today"
+  const [showTodayOnly, setShowTodayOnly] = useState<boolean>(false); // Default to show all schedules
+  const [filterMode, setFilterMode] = useState<"all" | "today" | "single" | "range">(
+    "all"
   );
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+
+  // Column visibility
+  const [visibleColumns, setVisibleColumns] = useState({
+    dueDate: true,
+    loanNumber: true,
+    unionMember: true,
+    creditOfficer: true,
+    union: true,
+    principal: true,
+    processingFee: true,
+    totalLeft: true,
+    dueToday: true,
+    status: true,
+    actions: true,
+  });
+
+  const columnLabels: Record<keyof typeof visibleColumns, string> = {
+    dueDate: "Due Date",
+    loanNumber: "Loan #",
+    unionMember: "Union Member",
+    creditOfficer: "Credit Officer",
+    union: "Union",
+    principal: "Principal",
+    processingFee: "Processing Fee",
+    totalLeft: "Total Left",
+    dueToday: "Due Today",
+    status: "Status",
+    actions: "Actions",
+  };
+
+  const toggleColumn = (column: keyof typeof visibleColumns) => {
+    setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
+  };
 
   // Modals
   const [paymentModal, setPaymentModal] = useState<{
@@ -562,7 +606,7 @@ export default function RepaymentSchedulePage() {
     try {
       const params: any = {
         page: currentPage,
-        limit: 20, // Increase limit to get more data for client-side filtering
+        limit: itemsPerPage, // Use configurable items per page
       };
 
       // Only send parameters that the backend supports
@@ -1404,7 +1448,24 @@ export default function RepaymentSchedulePage() {
             </div>
 
             {/* Filter Mode - Simplified & Clear */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full sm:w-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full sm:w-auto">
+              <Button
+                variant={filterMode === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setFilterMode("all");
+                  setShowTodayOnly(false);
+                  setDateRange(undefined);
+                }}
+                className={`text-xs ${
+                  filterMode === "all"
+                    ? "bg-gray-700 hover:bg-gray-800 text-white"
+                    : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
+                }`}
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                All
+              </Button>
               <Button
                 variant={filterMode === "today" ? "default" : "outline"}
                 size="sm"
@@ -1435,7 +1496,7 @@ export default function RepaymentSchedulePage() {
                     : "bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
                 }`}
               >
-                <Eye className="h-3 w-3 mr-1" />
+                <Calendar className="h-3 w-3 mr-1" />
                 Single Day
               </Button>
               <Button
@@ -1557,6 +1618,11 @@ export default function RepaymentSchedulePage() {
               <div>
                 <Label className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3 block">
                   {filterMode === "range" ? "Due Date Range" : "Due Date"}
+                  {filterMode === "all" && (
+                    <span className="text-xs text-gray-500 font-normal ml-2">
+                      (Showing all schedules)
+                    </span>
+                  )}
                   {filterMode === "today" && (
                     <span className="text-xs text-amber-600 font-normal ml-2">
                       (Showing only Today)
@@ -1567,9 +1633,9 @@ export default function RepaymentSchedulePage() {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      disabled={filterMode === "today"}
+                      disabled={filterMode === "today" || filterMode === "all"}
                       className={`w-full justify-start text-left font-normal h-12 px-4 ${
-                        filterMode === "today"
+                        filterMode === "today" || filterMode === "all"
                           ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                           : "border-gray-300 hover:border-purple-500 focus:border-purple-500"
                       }`}
@@ -1588,7 +1654,9 @@ export default function RepaymentSchedulePage() {
                         </span>
                       ) : (
                         <span className="text-sm text-gray-500">
-                          {filterMode === "today"
+                          {filterMode === "all"
+                            ? "All schedules mode"
+                            : filterMode === "today"
                             ? "Today Only mode active"
                             : filterMode === "single"
                             ? "Select a date"
@@ -1597,7 +1665,7 @@ export default function RepaymentSchedulePage() {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  {filterMode !== "today" && (
+                  {filterMode !== "today" && filterMode !== "all" && (
                     <PopoverContent
                       className="w-auto p-0 max-w-[95vw]"
                       align="start"
@@ -1735,7 +1803,9 @@ export default function RepaymentSchedulePage() {
             Repayment Schedules
           </CardTitle>
           <p className="text-sm text-gray-600 mt-2">
-            {filterMode === "today"
+            {filterMode === "all"
+              ? "Showing all repayment schedules"
+              : filterMode === "today"
               ? "Showing repayment schedules due today"
               : filterMode === "single" && singleDate
               ? `Showing schedules for ${format(singleDate, "MMM dd, yyyy")}`
@@ -1759,29 +1829,61 @@ export default function RepaymentSchedulePage() {
               to {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
               {totalItems} results
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 hidden sm:inline">
-                Rows per page:
-              </span>
-              <span className="text-sm text-gray-600 sm:hidden">Per page:</span>
-              <Select
-                value={itemsPerPage.toString()}
-                onValueChange={(v) => {
-                  setItemsPerPage(Number(v));
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-16 sm:w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-4">
+              {/* Column Selector */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Columns
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-3" align="end">
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm mb-3">Toggle Columns</h4>
+                    {Object.entries(columnLabels).map(([key, label]) => (
+                      <label
+                        key={key}
+                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns[key as keyof typeof visibleColumns]}
+                          onChange={() => toggleColumn(key as keyof typeof visibleColumns)}
+                          className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                        />
+                        <span className="text-sm">{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Rows per page */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 hidden sm:inline">
+                  Rows per page:
+                </span>
+                <span className="text-sm text-gray-600 sm:hidden">Per page:</span>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(v) => {
+                    setItemsPerPage(Number(v));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-16 sm:w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -1790,39 +1892,61 @@ export default function RepaymentSchedulePage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Due Date
-                  </th>
-                  <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Loan #
-                  </th>
-                  <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Union Member
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Credit Officer
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Union
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Principal
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Processing Fee
-                  </th>
-                  <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Total Left
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Due Today
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Status
-                  </th>
-                  <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Actions
-                  </th>
+                  {visibleColumns.dueDate && (
+                    <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Due Date
+                    </th>
+                  )}
+                  {visibleColumns.loanNumber && (
+                    <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Loan #
+                    </th>
+                  )}
+                  {visibleColumns.unionMember && (
+                    <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Union Member
+                    </th>
+                  )}
+                  {visibleColumns.creditOfficer && (
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Credit Officer
+                    </th>
+                  )}
+                  {visibleColumns.union && (
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Union
+                    </th>
+                  )}
+                  {visibleColumns.principal && (
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Principal
+                    </th>
+                  )}
+                  {visibleColumns.processingFee && (
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Processing Fee
+                    </th>
+                  )}
+                  {visibleColumns.totalLeft && (
+                    <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Total Left
+                    </th>
+                  )}
+                  {visibleColumns.dueToday && (
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Due Today
+                    </th>
+                  )}
+                  {visibleColumns.status && (
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Status
+                    </th>
+                  )}
+                  {visibleColumns.actions && (
+                    <th className="px-3 sm:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">

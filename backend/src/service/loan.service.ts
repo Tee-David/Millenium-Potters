@@ -362,12 +362,12 @@ export class LoanService {
           },
         },
         {
-          customer: {
+          unionMember: {
             lastName: { contains: filters.search, mode: "insensitive" },
           },
         },
         {
-          customer: { code: { contains: filters.search, mode: "insensitive" } },
+          unionMember: { code: { contains: filters.search, mode: "insensitive" } },
         },
       ];
     }
@@ -398,6 +398,31 @@ export class LoanService {
               name: true,
             },
           },
+          assignedOfficer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+            },
+          },
+          createdByUser: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+            },
+          },
+          // Include schedule items to calculate totalPaid and totalOutstanding
+          scheduleItems: {
+            where: { deletedAt: null },
+            select: {
+              paidAmount: true,
+            },
+          },
           _count: {
             select: {
               repayments: true,
@@ -412,7 +437,25 @@ export class LoanService {
       prisma.loan.count({ where }),
     ]);
 
-    return { loans, total, page, limit };
+    // Transform loans to include totalPaid and totalOutstanding
+    const loansWithPaymentInfo = loans.map((loan: any) => {
+      const totalPaid = loan.scheduleItems.reduce(
+        (sum: number, item: any) => sum + parseFloat(item.paidAmount || 0),
+        0
+      );
+      const principalAmount = parseFloat(loan.principalAmount || 0);
+      const totalOutstanding = Math.max(0, principalAmount - totalPaid);
+
+      return {
+        ...loan,
+        totalPaid,
+        totalOutstanding,
+        // Remove scheduleItems from response to keep it clean (already have _count)
+        scheduleItems: undefined,
+      };
+    });
+
+    return { loans: loansWithPaymentInfo, total, page, limit };
   }
 
   static async getLoanById(
