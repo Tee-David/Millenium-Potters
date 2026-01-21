@@ -470,6 +470,24 @@ export class LoanService {
         unionMember: true,
         loanType: true,
         union: true,
+        assignedOfficer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
         scheduleItems: {
           where: { deletedAt: null },
           orderBy: { sequence: "asc" },
@@ -481,6 +499,8 @@ export class LoanService {
               select: {
                 id: true,
                 email: true,
+                firstName: true,
+                lastName: true,
               },
             },
           },

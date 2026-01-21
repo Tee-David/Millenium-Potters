@@ -813,8 +813,8 @@ export default function LoanDetailPage() {
                   icon={FileText}
                 />
                 <DetailField
-                  label="Branch"
-                  content={loan?.branch?.name || "N/A"}
+                  label="Union/Branch"
+                  content={loan?.union?.name || "N/A"}
                   icon={MapPin}
                 />
                 <DetailField
@@ -842,10 +842,10 @@ export default function LoanDetailPage() {
                 <DetailField
                   label="Customer"
                   content={
-                    loan?.customer
-                      ? `${loan.customer?.firstName || ""} ${
-                          loan.customer?.lastName || ""
-                        }`
+                    loan?.unionMember
+                      ? `${loan.unionMember?.firstName || ""} ${
+                          loan.unionMember?.lastName || ""
+                        }`.trim() || "N/A"
                       : "N/A"
                   }
                   icon={User}
@@ -857,10 +857,16 @@ export default function LoanDetailPage() {
                       <User className="h-4 w-4 text-green-600" />
                       <div>
                         <p className="font-semibold text-gray-900">
-                          {loan?.assignedOfficer?.name ||
-                            loan?.assignedOfficer?.email ||
-                            "N/A"}
+                          {loan?.assignedOfficer?.firstName &&
+                          loan?.assignedOfficer?.lastName
+                            ? `${loan.assignedOfficer.firstName} ${loan.assignedOfficer.lastName}`
+                            : loan?.assignedOfficer?.email || "N/A"}
                         </p>
+                        {loan?.assignedOfficer?.role && (
+                          <p className="text-sm text-gray-500 capitalize">
+                            {loan.assignedOfficer.role.replace("_", " ").toLowerCase()}
+                          </p>
+                        )}
                       </div>
                     </div>
                   }
@@ -872,16 +878,16 @@ export default function LoanDetailPage() {
                       <User className="h-4 w-4 text-green-600" />
                       <div>
                         <p className="font-semibold text-gray-900">
-                          {(loan?.createdBy as any)?.firstName &&
-                          (loan?.createdBy as any)?.lastName
-                            ? `${(loan.createdBy as any).firstName} ${
-                                (loan.createdBy as any).lastName
+                          {(loan?.createdByUser as any)?.firstName &&
+                          (loan?.createdByUser as any)?.lastName
+                            ? `${(loan.createdByUser as any).firstName} ${
+                                (loan.createdByUser as any).lastName
                               }`
-                            : loan?.createdBy?.email || "N/A"}
+                            : (loan?.createdByUser as any)?.email || "N/A"}
                         </p>
-                        {(loan?.createdBy as any)?.role && (
+                        {(loan?.createdByUser as any)?.role && (
                           <p className="text-sm text-gray-500 capitalize">
-                            {(loan.createdBy as any).role
+                            {(loan.createdByUser as any).role
                               .replace("_", " ")
                               .toLowerCase()}
                           </p>
@@ -1743,8 +1749,8 @@ export default function LoanDetailPage() {
                   </div>
                   <div>
                     <span className="font-medium">Customer:</span>{" "}
-                    {loan?.customer
-                      ? `${loan.customer.firstName} ${loan.customer.lastName}`
+                    {loan?.unionMember
+                      ? `${loan.unionMember.firstName} ${loan.unionMember.lastName}`
                       : "N/A"}
                   </div>
                   <div>
