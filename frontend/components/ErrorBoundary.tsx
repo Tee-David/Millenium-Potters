@@ -3,7 +3,7 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, WifiOff, Database, Home } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -11,10 +11,14 @@ interface Props {
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
+type ErrorType = "network" | "database" | "auth" | "unknown";
+
 interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  errorType: ErrorType;
+  retryCount: number;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -24,14 +28,50 @@ export class ErrorBoundary extends Component<Props, State> {
       hasError: false,
       error: null,
       errorInfo: null,
+      errorType: "unknown",
+      retryCount: 0,
     };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static detectErrorType(error: Error): ErrorType {
+    const message = error.message.toLowerCase();
+
+    if (
+      message.includes("network") ||
+      message.includes("fetch") ||
+      message.includes("timeout") ||
+      message.includes("econnrefused") ||
+      message.includes("cors")
+    ) {
+      return "network";
+    }
+
+    if (
+      message.includes("database") ||
+      message.includes("prisma") ||
+      message.includes("connection")
+    ) {
+      return "database";
+    }
+
+    if (
+      message.includes("unauthorized") ||
+      message.includes("401") ||
+      message.includes("token") ||
+      message.includes("auth")
+    ) {
+      return "auth";
+    }
+
+    return "unknown";
+  }
+
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
       error,
       errorInfo: null,
+      errorType: ErrorBoundary.detectErrorType(error),
     };
   }
 
@@ -56,11 +96,69 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = () => {
-    this.setState({
+    this.setState((prevState) => ({
       hasError: false,
       error: null,
       errorInfo: null,
-    });
+      errorType: "unknown",
+      retryCount: prevState.retryCount + 1,
+    }));
+  };
+
+  handleGoHome = () => {
+    window.location.href = "/dashboard";
+  };
+
+  handleLogin = () => {
+    window.location.href = "/login";
+  };
+
+  getErrorConfig = () => {
+    const { errorType } = this.state;
+
+    switch (errorType) {
+      case "network":
+        return {
+          icon: <WifiOff className="h-8 w-8 text-amber-600" />,
+          iconBg: "bg-amber-100",
+          title: "Connection Problem",
+          description:
+            "We're having trouble connecting to the server. This could be due to your internet connection or the server may be temporarily unavailable.",
+          showRetry: true,
+          showRefresh: true,
+        };
+      case "database":
+        return {
+          icon: <Database className="h-8 w-8 text-blue-600" />,
+          iconBg: "bg-blue-100",
+          title: "Database Error",
+          description:
+            "There was a problem accessing the database. This is usually temporary - please try again in a moment.",
+          showRetry: true,
+          showRefresh: true,
+        };
+      case "auth":
+        return {
+          icon: <AlertTriangle className="h-8 w-8 text-orange-600" />,
+          iconBg: "bg-orange-100",
+          title: "Session Expired",
+          description:
+            "Your session has expired or you don't have permission to access this resource. Please log in again.",
+          showRetry: false,
+          showRefresh: false,
+          showLogin: true,
+        };
+      default:
+        return {
+          icon: <AlertTriangle className="h-8 w-8 text-red-600" />,
+          iconBg: "bg-red-100",
+          title: "Something went wrong",
+          description:
+            "We're sorry, but something unexpected happened. Please try refreshing the page.",
+          showRetry: true,
+          showRefresh: true,
+        };
+    }
   };
 
   render() {
@@ -70,25 +168,30 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
+      const config = this.getErrorConfig();
+
       // Default error UI
       return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md border-red-200">
+          <Card className="w-full max-w-md border-gray-200">
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="p-3 bg-red-100 rounded-full">
-                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                <div className={`p-3 ${config.iconBg} rounded-full`}>
+                  {config.icon}
                 </div>
               </div>
               <CardTitle className="text-xl text-gray-900">
-                Something went wrong
+                {config.title}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-              <p className="text-gray-600">
-                We're sorry, but something unexpected happened. Please try
-                refreshing the page.
-              </p>
+              <p className="text-gray-600">{config.description}</p>
+
+              {this.state.retryCount > 0 && (
+                <p className="text-sm text-gray-500">
+                  Retry attempts: {this.state.retryCount}
+                </p>
+              )}
 
               {process.env.NODE_ENV === "development" && this.state.error && (
                 <details className="text-left bg-gray-50 p-3 rounded-lg">
@@ -97,12 +200,15 @@ export class ErrorBoundary extends Component<Props, State> {
                   </summary>
                   <div className="text-sm text-gray-600 space-y-2">
                     <div>
+                      <strong>Type:</strong> {this.state.errorType}
+                    </div>
+                    <div>
                       <strong>Error:</strong> {this.state.error.message}
                     </div>
                     {this.state.errorInfo && (
                       <div>
                         <strong>Component Stack:</strong>
-                        <pre className="mt-1 text-xs bg-white p-2 rounded border overflow-auto">
+                        <pre className="mt-1 text-xs bg-white p-2 rounded border overflow-auto max-h-32">
                           {this.state.errorInfo.componentStack}
                         </pre>
                       </div>
@@ -111,19 +217,35 @@ export class ErrorBoundary extends Component<Props, State> {
                 </details>
               )}
 
-              <div className="flex gap-2 justify-center">
-                <Button
-                  onClick={this.handleRetry}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Try Again
-                </Button>
-                <Button
-                  onClick={() => window.location.reload()}
-                  variant="outline"
-                >
-                  Refresh Page
+              <div className="flex gap-2 justify-center flex-wrap">
+                {config.showRetry && (
+                  <Button
+                    onClick={this.handleRetry}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Try Again
+                  </Button>
+                )}
+                {config.showRefresh && (
+                  <Button
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                  >
+                    Refresh Page
+                  </Button>
+                )}
+                {(config as any).showLogin && (
+                  <Button
+                    onClick={this.handleLogin}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    Go to Login
+                  </Button>
+                )}
+                <Button onClick={this.handleGoHome} variant="outline">
+                  <Home className="h-4 w-4 mr-2" />
+                  Go Home
                 </Button>
               </div>
             </CardContent>

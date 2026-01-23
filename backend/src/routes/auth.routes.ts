@@ -36,4 +36,9 @@ router
     AuthController.changePassword
   );
 
+// Session management routes
+router.route("/sessions").get(authenticate, AuthController.getActiveSessions);
+router.route("/sessions/:sessionId").delete(authenticate, AuthController.revokeSession);
+router.route("/sessions/revoke-others").post(authenticate, AuthController.revokeOtherSessions);
+
 export default router;

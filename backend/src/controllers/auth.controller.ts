@@ -104,4 +104,53 @@ export class AuthController {
       next(error);
     }
   }
+
+  static async getActiveSessions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.substring(7);
+      let currentJwtId: string | undefined;
+
+      if (token) {
+        try {
+          const decoded = JwtUtil.verifyAccessToken(token);
+          currentJwtId = decoded.jwtId;
+        } catch {
+          // Token invalid, continue without current session marking
+        }
+      }
+
+      const sessions = await AuthService.getActiveSessions(req.user!.id, currentJwtId);
+      return ApiResponseUtil.success(res, sessions, "Active sessions retrieved");
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async revokeSession(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { sessionId } = req.params;
+      const result = await AuthService.revokeSession(req.user!.id, sessionId);
+      return ApiResponseUtil.success(res, result, result.message);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async revokeOtherSessions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authHeader = req.headers.authorization;
+      const token = authHeader?.substring(7);
+
+      if (!token) {
+        return ApiResponseUtil.error(res, "Token required", 401);
+      }
+
+      const decoded = JwtUtil.verifyAccessToken(token);
+      const result = await AuthService.revokeOtherSessions(req.user!.id, decoded.jwtId);
+      return ApiResponseUtil.success(res, result, result.message);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }

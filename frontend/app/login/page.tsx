@@ -1,8 +1,7 @@
 "use client";
 
 import type { FC, FormEvent } from "react";
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -21,6 +20,9 @@ import {
   Sparkles,
   Zap,
   Award,
+  Wifi,
+  WifiOff,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { auth } from "@/lib/api";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://millenium-potters.onrender.com/api";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                              */
@@ -98,6 +102,48 @@ const LoginPage: FC = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  /* ---------- backend status state ------------------------------- */
+  const [backendStatus, setBackendStatus] = useState<"checking" | "online" | "offline" | "waking">("checking");
+  const [retryCount, setRetryCount] = useState(0);
+
+  /* ---------- backend health check ------------------------------- */
+  const checkBackendHealth = async () => {
+    const baseUrl = API_URL.replace(/\/api\/?$/, "");
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(`${baseUrl}/health`, {
+        method: "GET",
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        setBackendStatus("online");
+        setRetryCount(0);
+      } else {
+        setBackendStatus("offline");
+      }
+    } catch (error) {
+      if (retryCount < 3) {
+        setBackendStatus("waking");
+        setRetryCount((prev) => prev + 1);
+        // Retry after delay (Render cold start can take 30-60 seconds)
+        setTimeout(checkBackendHealth, 5000);
+      } else {
+        setBackendStatus("offline");
+      }
+    }
+  };
+
+  useEffect(() => {
+    checkBackendHealth();
+    // Check health every 30 seconds
+    const interval = setInterval(checkBackendHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -314,6 +360,44 @@ const LoginPage: FC = () => {
               </form>
             </CardContent>
           </Card>
+
+          {/* Backend Status Indicator */}
+          <div className="flex items-center justify-center gap-2 text-sm">
+            {backendStatus === "checking" && (
+              <div className="flex items-center gap-2 text-gray-500">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <span>Checking server status...</span>
+              </div>
+            )}
+            {backendStatus === "online" && (
+              <div className="flex items-center gap-2 text-emerald-600">
+                <Wifi className="h-4 w-4" />
+                <span>Server online</span>
+              </div>
+            )}
+            {backendStatus === "waking" && (
+              <div className="flex items-center gap-2 text-amber-600">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <span>Server waking up... Please wait</span>
+              </div>
+            )}
+            {backendStatus === "offline" && (
+              <div className="flex items-center gap-2 text-red-500">
+                <WifiOff className="h-4 w-4" />
+                <span>Server offline</span>
+                <button
+                  onClick={() => {
+                    setRetryCount(0);
+                    setBackendStatus("checking");
+                    checkBackendHealth();
+                  }}
+                  className="underline hover:no-underline ml-1"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Security Notice */}
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500">

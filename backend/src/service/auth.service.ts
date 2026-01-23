@@ -283,4 +283,97 @@ export class AuthService {
 
     return user;
   }
+
+  /**
+   * Get all active sessions for a user
+   */
+  static async getActiveSessions(userId: string, currentJwtId?: string) {
+    const sessions = await prisma.staffSession.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      select: {
+        id: true,
+        jwtId: true,
+        ipAddress: true,
+        userAgent: true,
+        createdAt: true,
+        expiresAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Mark the current session
+    return sessions.map((session) => ({
+      ...session,
+      isCurrent: session.jwtId === currentJwtId,
+    }));
+  }
+
+  /**
+   * Revoke a specific session
+   */
+  static async revokeSession(userId: string, sessionId: string) {
+    const session = await prisma.staffSession.findFirst({
+      where: {
+        id: sessionId,
+        userId,
+        revokedAt: null,
+      },
+    });
+
+    if (!session) {
+      throw new Error("Session not found");
+    }
+
+    await prisma.staffSession.update({
+      where: { id: sessionId },
+      data: { revokedAt: new Date() },
+    });
+
+    return { message: "Session revoked successfully" };
+  }
+
+  /**
+   * Revoke all other sessions except the current one
+   */
+  static async revokeOtherSessions(userId: string, currentJwtId: string) {
+    const result = await prisma.staffSession.updateMany({
+      where: {
+        userId,
+        jwtId: { not: currentJwtId },
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+
+    return {
+      message: `${result.count} session(s) revoked successfully`,
+      count: result.count,
+    };
+  }
+
+  /**
+   * Clean up expired sessions (can be run as a cron job)
+   */
+  static async cleanupExpiredSessions() {
+    const result = await prisma.staffSession.deleteMany({
+      where: {
+        OR: [
+          { expiresAt: { lt: new Date() } },
+          { revokedAt: { not: null } },
+        ],
+      },
+    });
+
+    return { deleted: result.count };
+  }
 }

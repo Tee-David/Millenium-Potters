@@ -176,11 +176,56 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
-    // Handle network errors
-    if (err.code === "NETWORK_ERROR" || err.message.includes("Network Error")) {
+    // Handle network errors with retry
+    if (
+      err.code === "NETWORK_ERROR" ||
+      err.code === "ECONNABORTED" ||
+      err.message.includes("Network Error") ||
+      err.message.includes("timeout") ||
+      !err.response
+    ) {
+      const config = err.config;
+      config._networkRetryCount = config._networkRetryCount || 0;
+
+      // Retry network errors up to 3 times
+      if (config._networkRetryCount < 3) {
+        config._networkRetryCount++;
+        const delay = Math.pow(2, config._networkRetryCount) * 1000; // 2s, 4s, 8s
+        console.warn(
+          `⚠️ Network error - retrying in ${delay / 1000}s (attempt ${config._networkRetryCount}/3)`
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return api(config);
+      }
+
       toast.error("Network Error", {
         description:
           "Unable to connect to the server. Please check your internet connection.",
+        duration: 5000,
+      });
+      return Promise.reject(err);
+    }
+
+    // Handle 5xx server errors with retry
+    if (err.response?.status >= 500 && err.response?.status < 600) {
+      const config = err.config;
+      config._serverRetryCount = config._serverRetryCount || 0;
+
+      // Retry server errors up to 2 times
+      if (config._serverRetryCount < 2) {
+        config._serverRetryCount++;
+        const delay = Math.pow(2, config._serverRetryCount) * 1000; // 2s, 4s
+        console.warn(
+          `⚠️ Server error (${err.response.status}) - retrying in ${delay / 1000}s (attempt ${config._serverRetryCount}/2)`
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return api(config);
+      }
+
+      toast.error("Server Error", {
+        description: "The server is experiencing issues. Please try again later.",
         duration: 5000,
       });
       return Promise.reject(err);
@@ -304,6 +349,11 @@ export const auth = {
     api.post("/auth/reset-password", dto),
   changePassword: (dto: { currentPassword: string; newPassword: string }) =>
     api.put("/auth/change-password", dto),
+
+  // Session management
+  getActiveSessions: () => api.get("/auth/sessions"),
+  revokeSession: (sessionId: string) => api.delete(`/auth/sessions/${sessionId}`),
+  revokeOtherSessions: () => api.post("/auth/sessions/revoke-others"),
 };
 
 // Branches API - matches backend endpoints
