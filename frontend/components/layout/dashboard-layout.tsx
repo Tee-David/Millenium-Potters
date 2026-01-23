@@ -1,7 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Header } from "../ui/header";
 import {
@@ -16,8 +17,16 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   // Show loading state while fetching user data
   if (isLoading) {
@@ -29,6 +38,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </div>
     );
+  }
+
+  // Show nothing while redirecting
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
