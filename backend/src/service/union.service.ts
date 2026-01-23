@@ -24,11 +24,12 @@ interface GetUnionsFilters {
 }
 
 export class UnionService {
-  static async createUnion(data: CreateUnionData, creatorRole: Role) {
+  static async createUnion(data: CreateUnionData, creatorRole: Role, creatorId?: string) {
     console.log("UnionService.createUnion: Creating union with data:", {
       name: data.name,
       creditOfficerId: data.creditOfficerId,
       creatorRole,
+      creatorId,
     });
 
     // Only admins and supervisors can create unions
@@ -52,8 +53,8 @@ export class UnionService {
     }
 
     // Check if supervisor can assign this credit officer (if supervisor is creating)
-    if (creatorRole === Role.SUPERVISOR) {
-      if (creditOfficer.supervisorId !== creditOfficer.id) {
+    if (creatorRole === Role.SUPERVISOR && creatorId) {
+      if (creditOfficer.supervisorId !== creatorId) {
         // The credit officer must be under this supervisor
         throw new Error(
           "You can only assign credit officers assigned to you"
@@ -295,19 +296,50 @@ export class UnionService {
         throw new Error("Assigned user must have CREDIT_OFFICER role");
       }
 
+      const oldOfficerId = union.creditOfficerId;
       updatePayload.creditOfficerId = data.creditOfficerId;
 
       // Record the assignment history
       await prisma.unionAssignmentHistory.create({
         data: {
           unionId: id,
-          oldOfficerId: union.creditOfficerId,
+          oldOfficerId,
           newOfficerId: data.creditOfficerId,
           changedByUserId: updaterId,
           reason: "Union reassignment",
           changedAt: new Date(),
         },
       });
+
+      // Cascade: Update all union members' currentOfficerId to the new credit officer
+      const membersUpdateResult = await prisma.unionMember.updateMany({
+        where: {
+          unionId: id,
+          deletedAt: null,
+        },
+        data: {
+          currentOfficerId: data.creditOfficerId,
+        },
+      });
+      console.log(
+        `UnionService.updateUnion: Updated ${membersUpdateResult.count} members to new officer ${data.creditOfficerId}`
+      );
+
+      // Invalidate all sessions for the old credit officer to refresh their permissions
+      if (oldOfficerId && oldOfficerId !== data.creditOfficerId) {
+        await prisma.staffSession.updateMany({
+          where: {
+            userId: oldOfficerId,
+            revokedAt: null,
+          },
+          data: {
+            revokedAt: new Date(),
+          },
+        });
+        console.log(
+          `UnionService.updateUnion: Invalidated sessions for old officer ${oldOfficerId}`
+        );
+      }
     }
 
     if (Object.keys(updatePayload).length === 0) {
@@ -466,6 +498,36 @@ export class UnionService {
         changedAt: new Date(),
       },
     });
+
+    // Cascade: Update all union members' currentOfficerId to the new credit officer
+    const membersUpdateResult = await prisma.unionMember.updateMany({
+      where: {
+        unionId,
+        deletedAt: null,
+      },
+      data: {
+        currentOfficerId: creditOfficerId,
+      },
+    });
+    console.log(
+      `UnionService.assignUnionToCreditOfficer: Updated ${membersUpdateResult.count} members to new officer ${creditOfficerId}`
+    );
+
+    // Invalidate all sessions for the old credit officer to refresh their permissions
+    if (oldOfficerId && oldOfficerId !== creditOfficerId) {
+      await prisma.staffSession.updateMany({
+        where: {
+          userId: oldOfficerId,
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: new Date(),
+        },
+      });
+      console.log(
+        `UnionService.assignUnionToCreditOfficer: Invalidated sessions for old officer ${oldOfficerId}`
+      );
+    }
 
     return await this.getUnionById(unionId, Role.ADMIN);
   }

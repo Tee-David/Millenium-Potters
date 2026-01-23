@@ -29,7 +29,8 @@ export class UnionController {
           address,
           creditOfficerId,
         },
-        userRole
+        userRole,
+        userId
       );
 
       res.status(201).json({

@@ -586,9 +586,29 @@ export class LoanService {
     if (userRole === Role.ADMIN) {
       // ADMIN can update all loans - no restrictions
       console.log("ADMIN user - allowing update to loan:", id);
-    } else if (userRole === Role.CREDIT_OFFICER) {
-      // CREDIT_OFFICER can only update loans they are assigned to
-      throw new Error("You do not have permission to update this loan");
+    } else if (userRole === Role.CREDIT_OFFICER && userId) {
+      // CREDIT_OFFICER can only update loans in their union(s)
+      // Get all unions managed by this credit officer
+      const userUnions = await prisma.union.findMany({
+        where: {
+          creditOfficerId: userId,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+
+      const unionIds = userUnions.map(u => u.id);
+
+      if (!unionIds.includes(loan.unionId)) {
+        throw new Error("You do not have permission to update this loan");
+      }
+      console.log(
+        "CREDIT_OFFICER user - allowing update to loan in union:",
+        loan.unionId
+      );
+    } else if (userRole === Role.SUPERVISOR) {
+      // SUPERVISOR cannot edit loans - view only
+      throw new Error("Supervisors cannot edit loans");
     }
 
     // Validate loan type if changing

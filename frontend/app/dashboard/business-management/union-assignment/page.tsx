@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { unionsApi, usersApi } from "@/lib/api";
+import { unionsApi, usersApi, unionMembersApi } from "@/lib/api";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import {
   Building2,
@@ -254,9 +255,9 @@ export default function UnionAssignmentPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Union Assignment</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Assign credit officers to unions and manage assignments
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Assignment</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Manage union and member assignments
           </p>
         </div>
         <Button
@@ -270,6 +271,21 @@ export default function UnionAssignmentPage() {
           Refresh
         </Button>
       </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="union" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="union" className="gap-2">
+            <Building2 className="h-4 w-4" />
+            Union Assignment
+          </TabsTrigger>
+          <TabsTrigger value="member" className="gap-2">
+            <User className="h-4 w-4" />
+            Member Assignment
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="union" className="mt-6 space-y-6">
 
       {/* Stats Cards */}
       {stats && (
@@ -596,6 +612,351 @@ export default function UnionAssignmentPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+
+        <TabsContent value="member" className="mt-6 space-y-6">
+          <MemberAssignmentTab unions={unions} onRefresh={loadData} />
+        </TabsContent>
+      </Tabs>
     </div>
+  );
+}
+
+// Member Assignment Tab Component
+interface MemberAssignmentTabProps {
+  unions: Union[];
+  onRefresh: () => void;
+}
+
+interface UnionMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  unionId: string;
+  union?: {
+    id: string;
+    name: string;
+  };
+}
+
+function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
+  const [members, setMembers] = useState<UnionMember[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [unionFilter, setUnionFilter] = useState<string>("all");
+
+  // Dialog states
+  const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<UnionMember | null>(null);
+  const [selectedUnionId, setSelectedUnionId] = useState<string>("");
+  const [reassignReason, setReassignReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  const loadMembers = async () => {
+    setLoading(true);
+    try {
+      const response = await unionMembersApi.getAll({ limit: 1000 });
+      if (response.data.success) {
+        setMembers(response.data.data?.members || response.data.data || []);
+      }
+    } catch (err: any) {
+      console.error("Failed to load members:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReassign = async () => {
+    if (!selectedMember || !selectedUnionId) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await unionMembersApi.reassign(selectedMember.id, {
+        newUnionId: selectedUnionId,
+        reason: reassignReason || undefined,
+      });
+
+      if (response.data.success) {
+        toast.success("Member reassigned successfully");
+        setIsReassignDialogOpen(false);
+        setSelectedMember(null);
+        setSelectedUnionId("");
+        setReassignReason("");
+        loadMembers();
+        onRefresh();
+      } else {
+        throw new Error(response.data.message || "Failed to reassign member");
+      }
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Failed to reassign member";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openReassignDialog = (member: UnionMember) => {
+    setSelectedMember(member);
+    setSelectedUnionId("");
+    setIsReassignDialogOpen(true);
+  };
+
+  const filteredMembers = useMemo(() => {
+    let filtered = members;
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (member) =>
+          member.firstName.toLowerCase().includes(term) ||
+          member.lastName.toLowerCase().includes(term) ||
+          member.email?.toLowerCase().includes(term) ||
+          member.phone?.toLowerCase().includes(term)
+      );
+    }
+
+    if (unionFilter !== "all") {
+      filtered = filtered.filter((member) => member.unionId === unionFilter);
+    }
+
+    return filtered;
+  }, [members, searchTerm, unionFilter]);
+
+  return (
+    <>
+      {/* Filters */}
+      <Card className="bg-white dark:bg-gray-800 shadow-sm">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="member-search">Search</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  id="member-search"
+                  placeholder="Search members..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="union-filter">Union</Label>
+              <SearchableSelect
+                value={unionFilter}
+                onValueChange={setUnionFilter}
+                placeholder="All Unions"
+                searchPlaceholder="Search unions..."
+                options={[
+                  { value: "all", label: "All Unions" },
+                  ...unions.map((union) => ({
+                    value: union.id,
+                    label: union.name,
+                  })),
+                ]}
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              {(searchTerm || unionFilter !== "all") && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setUnionFilter("all");
+                  }}
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Members Table */}
+      <Card className="bg-white dark:bg-gray-800 shadow-sm">
+        <CardHeader>
+          <CardTitle>Union Members</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : filteredMembers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <User className="h-12 w-12 text-gray-400 mb-4" />
+              <p className="text-gray-600 dark:text-gray-400 font-medium">No members found</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                {searchTerm || unionFilter !== "all"
+                  ? "Try adjusting your filters"
+                  : "Add union members to get started"}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Current Union</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredMembers.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-gray-400" />
+                          {member.firstName} {member.lastName}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1 text-sm">
+                          {member.email && (
+                            <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                              <Mail className="h-3 w-3" />
+                              {member.email}
+                            </div>
+                          )}
+                          {member.phone && (
+                            <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                              <Phone className="h-3 w-3" />
+                              {member.phone}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {member.union ? (
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-blue-500" />
+                            <span>{member.union.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openReassignDialog(member)}
+                          className="gap-2"
+                        >
+                          <ArrowRight className="h-4 w-4" />
+                          Reassign
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Reassign Dialog */}
+      <Dialog open={isReassignDialogOpen} onOpenChange={setIsReassignDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Reassign Member</DialogTitle>
+            <DialogDescription>
+              Reassign {selectedMember?.firstName} {selectedMember?.lastName} to a different union.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="member-name">Member</Label>
+              <Input
+                id="member-name"
+                value={selectedMember ? `${selectedMember.firstName} ${selectedMember.lastName}` : ""}
+                disabled
+                className="bg-gray-50 dark:bg-gray-700"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="current-union">Current Union</Label>
+              <Input
+                id="current-union"
+                value={selectedMember?.union?.name || "No union"}
+                disabled
+                className="bg-gray-50 dark:bg-gray-700"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-union">
+                New Union <span className="text-red-500">*</span>
+              </Label>
+              <SearchableSelect
+                value={selectedUnionId}
+                onValueChange={setSelectedUnionId}
+                placeholder="Select new union"
+                searchPlaceholder="Search unions..."
+                options={unions
+                  .filter((u) => u.id !== selectedMember?.unionId)
+                  .map((union) => ({
+                    value: union.id,
+                    label: union.name,
+                  }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reassign-reason">Reason (Optional)</Label>
+              <Textarea
+                id="reassign-reason"
+                value={reassignReason}
+                onChange={(e) => setReassignReason(e.target.value)}
+                placeholder="Enter reason for reassignment..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsReassignDialogOpen(false);
+                setSelectedMember(null);
+                setSelectedUnionId("");
+                setReassignReason("");
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleReassign}
+              disabled={isSubmitting || !selectedUnionId}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Reassigning...
+                </>
+              ) : (
+                "Reassign"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

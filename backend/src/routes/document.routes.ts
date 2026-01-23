@@ -18,16 +18,19 @@ router.get("/types", requireStaff, DocumentController.getDocumentTypes);
 router.post(
   "/types",
   requireRole(Role.ADMIN),
+  auditLog("DOCUMENT_TYPE_CREATED", "DocumentType"),
   DocumentController.createDocumentType
 );
 router.put(
   "/types/:id",
   requireRole(Role.ADMIN),
+  auditLog("DOCUMENT_TYPE_UPDATED", "DocumentType"),
   DocumentController.updateDocumentType
 );
 router.delete(
   "/types/:id",
   requireRole(Role.ADMIN),
+  auditLog("DOCUMENT_TYPE_DELETED", "DocumentType"),
   DocumentController.deleteDocumentType
 );
 

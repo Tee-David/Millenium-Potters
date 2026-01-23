@@ -469,7 +469,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-xl border border-red-200 p-8 text-center max-w-md mx-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-red-200 dark:border-red-800 p-8 text-center max-w-md mx-4">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Error Loading Dashboard
@@ -503,7 +503,7 @@ export default function DashboardPage() {
   if (!data) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-xl border border-gray-200 p-8 text-center max-w-md mx-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-8 text-center max-w-md mx-4">
           <div className="text-gray-400 text-6xl mb-4">📊</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             No Data Available
@@ -525,7 +525,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Enhanced Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Title and Welcome */}
@@ -583,7 +583,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <nav className="flex space-x-8 overflow-x-auto">
             {[

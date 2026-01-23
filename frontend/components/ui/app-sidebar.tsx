@@ -104,7 +104,7 @@ const navigationData: NavigationData = {
           roles: [UserRole.ADMIN, UserRole.SUPERVISOR],
         },
         {
-          name: "Union Assignment",
+          name: "Assignment",
           href: "/dashboard/business-management/union-assignment",
           icon: UserCheck,
           roles: [UserRole.ADMIN, UserRole.SUPERVISOR],

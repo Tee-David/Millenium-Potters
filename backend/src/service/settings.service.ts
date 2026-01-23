@@ -262,7 +262,7 @@ export class SettingsService {
   // Password Settings
   static async changePassword(
     userId: string,
-    currentPassword: string,
+    currentPassword: string | undefined,
     newPassword: string
   ): Promise<void> {
     const user = await prisma.user.findUnique({
@@ -273,13 +273,16 @@ export class SettingsService {
       throw new Error("User not found");
     }
 
-    // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(
-      currentPassword,
-      user.passwordHash
-    );
-    if (!isCurrentPasswordValid) {
-      throw new Error("Current password is incorrect");
+    // Current password verification is optional
+    // If provided, verify it matches
+    if (currentPassword) {
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.passwordHash
+      );
+      if (!isCurrentPasswordValid) {
+        throw new Error("Current password is incorrect");
+      }
     }
 
     // Validate new password

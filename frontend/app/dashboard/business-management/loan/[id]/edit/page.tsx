@@ -48,6 +48,7 @@ import {
   handleDatabaseError,
   getAccessToken,
 } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import { Loan } from "@/types/loan";
 import { ConfirmationModal } from "@/components/modals/confirmation-modal";
 
@@ -211,6 +212,7 @@ const SearchableSelect = ({
 export default function LoanEditPage() {
   const params = useParams();
   const router = useRouter();
+  const { user: currentUser } = useAuth();
   const loanId = params.id as string;
 
   const [formData, setFormData] = useState({
@@ -324,6 +326,23 @@ export default function LoanEditPage() {
 
       // Store loan status
       setLoanStatus(loanData.status || null);
+
+      // Check role-based permissions
+      if (currentUser?.role === "SUPERVISOR") {
+        toast.error("Supervisors cannot edit loans");
+        router.push(`/dashboard/business-management/loan/${loanId}`);
+        return;
+      }
+
+      // Check if loan can be edited based on status
+      if (
+        loanData.status !== "DRAFT" &&
+        loanData.status !== "PENDING_APPROVAL"
+      ) {
+        toast.error("This loan cannot be edited due to its current status");
+        router.push(`/dashboard/business-management/loan/${loanId}`);
+        return;
+      }
 
       // Populate form with loan data
       setFormData({
@@ -554,6 +573,12 @@ export default function LoanEditPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check role-based permissions
+    if (currentUser?.role === "SUPERVISOR") {
+      toast.error("Supervisors cannot edit loans");
+      return;
+    }
 
     // Check if loan can be edited
     if (

@@ -107,6 +107,7 @@ export function StaffOnly({
     <RoleGuard
       requiredRoles={[
         UserRole.ADMIN,
+        UserRole.SUPERVISOR,
         UserRole.BRANCH_MANAGER,
         UserRole.CREDIT_OFFICER,
       ]}

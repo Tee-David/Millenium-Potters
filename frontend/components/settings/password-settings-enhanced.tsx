@@ -234,9 +234,7 @@ export function PasswordSettingsEnhanced() {
   const validateForm = useCallback((): boolean => {
     const errors: ValidationErrors = {};
 
-    if (!formData.currentPassword) {
-      errors.currentPassword = "Current password is required";
-    }
+    // Current password is no longer required
 
     if (!formData.newPassword) {
       errors.newPassword = "New password is required";
@@ -248,15 +246,6 @@ export function PasswordSettingsEnhanced() {
       errors.confirmPassword = "Please confirm your new password";
     } else if (formData.newPassword !== formData.confirmPassword) {
       errors.confirmPassword = "Passwords do not match";
-    }
-
-    if (
-      formData.currentPassword &&
-      formData.newPassword &&
-      formData.currentPassword === formData.newPassword
-    ) {
-      errors.newPassword =
-        "New password must be different from current password";
     }
 
     setValidationErrors(errors);
@@ -360,14 +349,13 @@ export function PasswordSettingsEnhanced() {
   // Check if form can be submitted
   const canSubmit = useMemo(() => {
     return (
-      formData.currentPassword &&
       formData.newPassword &&
       formData.confirmPassword &&
       passwordValidation.isValid &&
       formData.newPassword === formData.confirmPassword &&
       !isSaving
     );
-  }, [formData, passwordValidation.isValid, isSaving]);
+  }, [formData.newPassword, formData.confirmPassword, passwordValidation.isValid, isSaving]);
 
   // Format last password change date
   const formatLastChangeDate = useCallback((dateString: string) => {
@@ -434,54 +422,7 @@ export function PasswordSettingsEnhanced() {
               </AlertDescription>
             </Alert>
 
-            {/* Only show current password for admin */}
-            {userRole === "ADMIN" && (
-              <>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="currentPassword"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Current Password <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="currentPassword"
-                      name="currentPassword"
-                      type={showPasswords.current ? "text" : "password"}
-                      value={formData.currentPassword}
-                      onChange={handleInputChange}
-                      placeholder="Enter your current password"
-                      className={`pr-10 ${
-                        validationErrors.currentPassword
-                          ? "border-red-500 focus:ring-red-500"
-                          : ""
-                      }`}
-                      disabled={isSaving}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => togglePasswordVisibility("current")}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                      tabIndex={-1}
-                    >
-                      {showPasswords.current ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                  {validationErrors.currentPassword && (
-                    <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
-                      <AlertCircle className="w-4 h-4" />
-                      {validationErrors.currentPassword}
-                    </p>
-                  )}
-                </div>
-                <Separator className="my-6" />
-              </>
-            )}
+            {/* Current password field removed per user request */}
 
             {/* New Password */}
             <div className="space-y-2">

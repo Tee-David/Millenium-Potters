@@ -2,6 +2,7 @@ import { Router } from "express";
 import { SettingsController } from "../controllers/settings.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { requireRole } from "../middlewares/role.middleware";
+import { auditLog } from "../middlewares/audit.middleware";
 import { Role } from "@prisma/client";
 import multer from "multer";
 import path from "path";
@@ -53,6 +54,7 @@ router.get(
 router.put(
   "/company",
   requireRole(Role.ADMIN),
+  auditLog("COMPANY_SETTINGS_UPDATED", "Settings"),
   SettingsController.updateCompanySettings
 );
 
@@ -65,6 +67,7 @@ router.get(
 router.put(
   "/email",
   requireRole(Role.ADMIN),
+  auditLog("EMAIL_SETTINGS_UPDATED", "Settings"),
   SettingsController.updateEmailSettings
 );
 router.post(
@@ -82,11 +85,16 @@ router.get(
 router.put(
   "/general",
   requireRole(Role.ADMIN),
+  auditLog("GENERAL_SETTINGS_UPDATED", "Settings"),
   SettingsController.updateGeneralSettings
 );
 
 // Password Settings - All authenticated users
-router.put("/password", SettingsController.changePassword);
+router.put(
+  "/password",
+  auditLog("PASSWORD_CHANGED", "User"),
+  SettingsController.changePassword
+);
 
 // System Settings - Admin only
 router.get(
@@ -97,6 +105,7 @@ router.get(
 router.put(
   "/system",
   requireRole(Role.ADMIN),
+  auditLog("SYSTEM_SETTINGS_UPDATED", "Settings"),
   SettingsController.updateSystemSettings
 );
 

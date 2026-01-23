@@ -1,23 +1,41 @@
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import type { Loan } from "@/types/loan";
 import { formatNaira } from "./currency";
+
+// Helper to get member name
+const getMemberName = (loan: Loan): string => {
+  if (loan.unionMember) {
+    return `${loan.unionMember.firstName} ${loan.unionMember.lastName}`;
+  }
+  return "N/A";
+};
+
+// Helper to get officer name
+const getOfficerName = (loan: Loan): string => {
+  if (loan.createdBy) {
+    if (loan.createdBy.name) return loan.createdBy.name;
+    if (loan.createdBy.firstName && loan.createdBy.lastName) {
+      return `${loan.createdBy.firstName} ${loan.createdBy.lastName}`;
+    }
+    return loan.createdBy.email || "N/A";
+  }
+  return "N/A";
+};
 
 export const exportToExcel = (loans: Loan[], filename = "loans") => {
   const data = loans.map((loan) => ({
     "Loan Number": loan.loanNumber,
-    Customer: loan.customer.name,
-    "Loan Type": loan.loanType.name,
+    Member: getMemberName(loan),
+    Union: loan.union?.name || "N/A",
+    "Loan Type": loan.loanType?.name || "N/A",
     "Principal Amount": formatNaira(loan.principalAmount),
-    "Processing Fee": formatNaira(loan.processingFee),
-    "Amount Left": formatNaira(loan.amountLeftToPay),
-    "Due Today": formatNaira(loan.dueToday),
+    "Processing Fee": formatNaira(loan.processingFeeAmount || 0),
     Status: loan.status.replace("_", " ").toUpperCase(),
-    "Credit Officer": loan.createdBy.name,
-    Branch: loan.branch,
-    "Issued Date": loan.loanIssuedDate,
-    Deadline: loan.loanDeadline,
+    "Credit Officer": getOfficerName(loan),
+    "Start Date": loan.startDate || "N/A",
+    "End Date": loan.endDate || "N/A",
   }));
 
   const ws = XLSX.utils.json_to_sheet(data);
@@ -34,21 +52,19 @@ export const exportToPDF = (loans: Loan[], filename = "loans") => {
 
   const tableData = loans.map((loan) => [
     loan.loanNumber,
-    loan.customer.name,
-    loan.loanType.name,
+    getMemberName(loan),
+    loan.loanType?.name || "N/A",
     formatNaira(loan.principalAmount),
-    formatNaira(loan.amountLeftToPay),
     loan.status.replace("_", " ").toUpperCase(),
-    loan.createdBy.name,
+    getOfficerName(loan),
   ]);
-  (doc as any).autoTable({
+  autoTable(doc, {
     head: [
       [
         "Loan #",
-        "Customer",
+        "Member",
         "Type",
         "Principal",
-        "Left to Pay",
         "Status",
         "Officer",
       ],
@@ -64,15 +80,13 @@ export const copyToClipboard = (loans: Loan[]) => {
   const data = loans
     .map(
       (loan) =>
-        `${loan.loanNumber}\t${loan.customer.name}\t${
-          loan.loanType.name
-        }\t${formatNaira(loan.principalAmount)}\t${formatNaira(
-          loan.amountLeftToPay
-        )}\t${loan.status}\t${loan.createdBy.name}`
+        `${loan.loanNumber}\t${getMemberName(loan)}\t${
+          loan.loanType?.name || "N/A"
+        }\t${formatNaira(loan.principalAmount)}\t${loan.status.replace("_", " ").toUpperCase()}\t${getOfficerName(loan)}`
     )
     .join("\n");
 
   const header =
-    "Loan Number\tCustomer\tLoan Type\tPrincipal Amount\tAmount Left\tStatus\tCredit Officer\n";
+    "Loan Number\tMember\tLoan Type\tPrincipal Amount\tStatus\tCredit Officer\n";
   navigator.clipboard.writeText(header + data);
 };

@@ -121,7 +121,7 @@ const SummaryCard = ({
   trend?: { value: number; isPositive: boolean };
 }) => {
   const colorConfig = {
-    green: "from-green-500 to-emerald-600",
+    green: "from-blue-500 to-indigo-600",
     emerald: "from-emerald-500 to-teal-600",
     teal: "from-teal-500 to-green-600",
     blue: "from-blue-500 to-indigo-600",
@@ -1024,8 +1024,8 @@ function LoanListPageContent() {
   // Error boundary for component errors
   if (error && loans.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-emerald-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-xl border border-red-200 p-8 text-center max-w-md mx-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-950 flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-red-200 dark:border-red-800 p-8 text-center max-w-md mx-4">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Error Loading Data
@@ -1047,7 +1047,7 @@ function LoanListPageContent() {
 
   if (loading && loans.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-emerald-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-950 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading loans...</p>
@@ -1057,9 +1057,9 @@ function LoanListPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-emerald-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-950">
       {/* Modern Header */}
-      <div className="relative bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 pb-32">
+      <div className="relative bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 dark:from-slate-800 dark:via-slate-900 dark:to-black pb-32">
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
@@ -1088,7 +1088,7 @@ function LoanListPageContent() {
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 mt-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div className="flex items-center gap-6">
-                <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-lg">
+                <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
                   <CreditCard className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -1112,7 +1112,7 @@ function LoanListPageContent() {
                 </Button>
                 <Button
                   asChild
-                  className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-lg"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-lg"
                 >
                   <Link href="/dashboard/business-management/loan/create">
                     <Plus className="h-4 w-4 mr-2" />

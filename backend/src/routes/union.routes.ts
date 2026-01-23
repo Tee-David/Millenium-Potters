@@ -2,6 +2,7 @@ import { Router } from "express";
 import { UnionController } from "../controllers/union.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { requireRole, requireAdmin } from "../middlewares/role.middleware";
+import { auditLog } from "../middlewares/audit.middleware";
 import { Role } from "@prisma/client";
 
 const router = Router();
@@ -13,6 +14,7 @@ router.use(authenticate);
 router.post(
   "/",
   requireRole(Role.ADMIN, Role.SUPERVISOR),
+  auditLog("UNION_CREATED", "Union"),
   UnionController.createUnion
 );
 
@@ -26,6 +28,7 @@ router.get("/:id", UnionController.getUnionById);
 router.put(
   "/:id",
   requireAdmin,
+  auditLog("UNION_UPDATED", "Union"),
   UnionController.updateUnion
 );
 
@@ -33,6 +36,7 @@ router.put(
 router.delete(
   "/:id",
   requireAdmin,
+  auditLog("UNION_DELETED", "Union"),
   UnionController.deleteUnion
 );
 
@@ -40,6 +44,7 @@ router.delete(
 router.post(
   "/:unionId/assign",
   requireAdmin,
+  auditLog("UNION_ASSIGNED", "Union"),
   UnionController.assignUnionToCreditOfficer
 );
 

@@ -41,6 +41,7 @@ import {
   documentsApi,
   getAccessToken,
 } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import { format, parseISO, isValid } from "date-fns";
 import { getUserDisplayName } from "@/utils/user-display";
 import { toast } from "sonner";
@@ -110,10 +111,15 @@ interface UnionMemberDetail {
 function UnionMemberDetailPageContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const { user: currentUser } = useAuth();
   const [member, setMember] = useState<UnionMemberDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isTogglingVerification, setIsTogglingVerification] = useState(false);
+
+  // Check if current user can toggle verification (ADMIN or SUPERVISOR only)
+  const canToggleVerification =
+    currentUser?.role === "ADMIN" || currentUser?.role === "SUPERVISOR";
 
   const formatDate = (
     dateString: string | null | undefined,
@@ -359,23 +365,34 @@ function UnionMemberDetailPageContent() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Member Information</CardTitle>
               <div className="flex items-center gap-2">
-                <Label
-                  htmlFor="verification-toggle"
-                  className="text-sm text-muted-foreground"
-                >
-                  Approved
-                </Label>
-                <Switch
-                  id="verification-toggle"
-                  checked={member.isVerified}
-                  onCheckedChange={handleToggleVerification}
-                  disabled={isTogglingVerification}
-                />
+                {canToggleVerification ? (
+                  <>
+                    <Label
+                      htmlFor="verification-toggle"
+                      className="text-sm text-muted-foreground"
+                    >
+                      Approved
+                    </Label>
+                    <Switch
+                      id="verification-toggle"
+                      checked={member.isVerified}
+                      onCheckedChange={handleToggleVerification}
+                      disabled={isTogglingVerification}
+                    />
+                  </>
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    Status:
+                  </span>
+                )}
                 {member.isVerified ? (
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 ) : (
                   <XCircle className="h-5 w-5 text-yellow-600" />
                 )}
+                <span className="text-sm">
+                  {member.isVerified ? "Verified" : "Pending"}
+                </span>
               </div>
             </CardHeader>
             <CardContent>

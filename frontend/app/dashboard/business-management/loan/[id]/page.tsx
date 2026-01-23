@@ -72,7 +72,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Loan } from "@/types/loan";
-import { ConfirmationModal } from "@/components/modals/confirmation-modal";
 import {
   Select,
   SelectContent,
@@ -370,13 +369,6 @@ export default function LoanDetailPage() {
   });
   const [isStatusUpdating, setIsStatusUpdating] = useState(false);
 
-  // Double confirmation for status updates
-  const [showStatusConfirmation, setShowStatusConfirmation] = useState(false);
-  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{
-    status: string;
-    notes: string;
-  } | null>(null);
-
   useEffect(() => {
     loadLoanData();
   }, [loanId]);
@@ -395,32 +387,19 @@ export default function LoanDetailPage() {
       return;
     }
 
-    // Store the status update data and show confirmation
-    setPendingStatusUpdate({
-      status: statusUpdateData.status,
-      notes: statusUpdateData.notes,
-    });
-    setShowStatusConfirmation(true);
-  };
-
-  const handleStatusConfirmation = async () => {
-    if (!pendingStatusUpdate) return;
-
-    setShowStatusConfirmation(false);
     setIsStatusUpdating(true);
 
     try {
       await loansApi.updateStatus(loanId, {
-        status: pendingStatusUpdate.status,
-        notes: pendingStatusUpdate.notes,
+        status: statusUpdateData.status,
+        notes: statusUpdateData.notes,
       });
 
       toast.success(
-        `Loan ${pendingStatusUpdate.status.toLowerCase()} successfully`
+        `Loan ${statusUpdateData.status.toLowerCase()} successfully`
       );
       setIsStatusModalOpen(false);
       setStatusUpdateData({ status: "", notes: "" });
-      setPendingStatusUpdate(null);
       loadLoanData(); // Reload loan data
     } catch (error: any) {
       console.error("Failed to update loan status:", error);
@@ -430,11 +409,6 @@ export default function LoanDetailPage() {
     } finally {
       setIsStatusUpdating(false);
     }
-  };
-
-  const handleCancelStatusConfirmation = () => {
-    setShowStatusConfirmation(false);
-    setPendingStatusUpdate(null);
   };
 
   const openStatusModal = (status: string) => {
@@ -585,9 +559,9 @@ export default function LoanDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-green-50/30 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <div className="w-20 h-20 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
           <p className="text-gray-600 text-xl font-medium">
             Loading loan details...
           </p>
@@ -629,9 +603,9 @@ export default function LoanDetailPage() {
   if (!loan || !loan.id) {
     console.log("Loan data not available, showing loading state. Loan:", loan);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-green-50/30 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <div className="w-20 h-20 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
           <p className="text-gray-600 text-xl font-medium">
             Loading loan details...
           </p>
@@ -644,9 +618,9 @@ export default function LoanDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-green-50 to-emerald-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-950">
       {/* Modern Header */}
-      <div className="relative bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 pb-32">
+      <div className="relative bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 dark:from-slate-800 dark:via-slate-900 dark:to-black pb-32">
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
@@ -694,7 +668,7 @@ export default function LoanDetailPage() {
                   Back
                 </Button>
                 <div className="flex items-center gap-4">
-                  <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-lg">
+                  <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
                     <CreditCard className="h-8 w-8 text-white" />
                   </div>
                   <div>
@@ -716,7 +690,7 @@ export default function LoanDetailPage() {
                     <>
                       <Button
                         onClick={() => openStatusModal("APPROVED")}
-                        className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-lg flex items-center gap-2"
+                        className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg flex items-center gap-2"
                       >
                         <CheckCircle className="h-4 w-4" />
                         Approve Loan
@@ -730,18 +704,24 @@ export default function LoanDetailPage() {
                       </Button>
                     </>
                   )}
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    router.push(
-                      `/dashboard/business-management/loan/${loanId}/edit`
-                    )
-                  }
-                  className="flex items-center gap-2 bg-white hover:bg-gray-50 shadow-sm"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit Loan
-                </Button>
+                {/* Edit button - only for ADMIN/CREDIT_OFFICER and editable statuses */}
+                {(currentUser?.role === "ADMIN" ||
+                  currentUser?.role === "CREDIT_OFFICER") &&
+                  (loan?.status === "DRAFT" ||
+                    loan?.status === "PENDING_APPROVAL") && (
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        router.push(
+                          `/dashboard/business-management/loan/${loanId}/edit`
+                        )
+                      }
+                      className="flex items-center gap-2 bg-white hover:bg-gray-50 shadow-sm"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit Loan
+                    </Button>
+                  )}
               </div>
             </div>
           </div>
@@ -1191,7 +1171,7 @@ export default function LoanDetailPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="bg-gradient-to-r from-green-600 to-emerald-700 text-white hover:from-green-700 hover:to-emerald-800 shadow-sm"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white hover:from-blue-700 hover:to-indigo-800 shadow-sm"
                       onClick={() => handleExport("excel")}
                     >
                       <FileSpreadsheet className="h-4 w-4 mr-1" />
@@ -1221,7 +1201,7 @@ export default function LoanDetailPage() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       placeholder="Search schedules..."
-                      className="pl-10 w-full sm:w-64 bg-white border-gray-200 focus:border-green-500 focus:ring-green-500"
+                      className="pl-10 w-full sm:w-64 bg-white border-gray-200 focus:border-blue-500 focus:ring-green-500"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -1704,7 +1684,7 @@ export default function LoanDetailPage() {
                   disabled={isStatusUpdating}
                   className={
                     statusUpdateData.status === "APPROVED"
-                      ? "bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-lg"
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-lg"
                       : "bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white shadow-lg"
                   }
                 >
@@ -1724,103 +1704,6 @@ export default function LoanDetailPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Status Update Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={showStatusConfirmation}
-          title={`Confirm Loan ${
-            pendingStatusUpdate?.status === "APPROVED"
-              ? "Approval"
-              : "Rejection"
-          }`}
-          message={
-            <div className="space-y-4">
-              <p className="text-gray-700">
-                Are you sure you want to{" "}
-                {pendingStatusUpdate?.status === "APPROVED"
-                  ? "approve"
-                  : "reject"}{" "}
-                this loan?
-              </p>
-
-              <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <span className="font-medium">Loan ID:</span> {loanId}
-                  </div>
-                  <div>
-                    <span className="font-medium">Customer:</span>{" "}
-                    {loan?.unionMember
-                      ? `${loan.unionMember.firstName} ${loan.unionMember.lastName}`
-                      : "N/A"}
-                  </div>
-                  <div>
-                    <span className="font-medium">Amount:</span> ₦
-                    {loan?.principalAmount
-                      ? Number(loan.principalAmount).toLocaleString()
-                      : "N/A"}
-                  </div>
-                  <div>
-                    <span className="font-medium">Current Status:</span>{" "}
-                    <span className="capitalize">
-                      {loan?.status?.toLowerCase() || "N/A"}
-                    </span>
-                  </div>
-                </div>
-                {pendingStatusUpdate?.notes && (
-                  <div className="mt-2">
-                    <span className="font-medium">Notes:</span>{" "}
-                    <span className="text-gray-600">
-                      {pendingStatusUpdate.notes}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div
-                className={`p-3 rounded-lg ${
-                  pendingStatusUpdate?.status === "APPROVED"
-                    ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
-                }`}
-              >
-                <p
-                  className={`text-sm ${
-                    pendingStatusUpdate?.status === "APPROVED"
-                      ? "text-green-800"
-                      : "text-red-800"
-                  }`}
-                >
-                  <strong>Warning:</strong> This action will permanently change
-                  the loan status to{" "}
-                  <strong>
-                    {pendingStatusUpdate?.status === "APPROVED"
-                      ? "APPROVED"
-                      : "REJECTED"}
-                  </strong>
-                  .
-                  {pendingStatusUpdate?.status === "APPROVED"
-                    ? " The loan will become active and repayment schedules will be generated."
-                    : " The loan will be rejected and cannot be approved again."}
-                </p>
-              </div>
-            </div>
-          }
-          onConfirm={handleStatusConfirmation}
-          onCancel={handleCancelStatusConfirmation}
-          confirmButtonText={
-            pendingStatusUpdate?.status === "APPROVED"
-              ? "Approve Loan"
-              : "Reject Loan"
-          }
-          cancelButtonText="Cancel"
-          confirmButtonVariant={
-            pendingStatusUpdate?.status === "APPROVED"
-              ? "default"
-              : "destructive"
-          }
-          maxWidth="lg"
-          isLoading={isStatusUpdating}
-        />
       </div>
     </div>
   );

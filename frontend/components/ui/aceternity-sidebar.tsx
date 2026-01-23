@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, createContext, useContext } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -400,10 +399,12 @@ function DesktopSidebar({
 }
 
 function Logo({ logo }: { logo: string | null }) {
+  const router = useRouter();
   return (
-    <Link
-      href="/dashboard"
-      className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
+    <button
+      type="button"
+      onClick={() => router.push("/dashboard")}
+      className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20 cursor-pointer"
     >
       <Image
         src="/logo-horizontal.png"
@@ -416,15 +417,17 @@ function Logo({ logo }: { logo: string | null }) {
           e.currentTarget.src = "/logo.png";
         }}
       />
-    </Link>
+    </button>
   );
 }
 
 function LogoIcon({ logo }: { logo: string | null }) {
+  const router = useRouter();
   return (
-    <Link
-      href="/dashboard"
-      className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
+    <button
+      type="button"
+      onClick={() => router.push("/dashboard")}
+      className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20 cursor-pointer"
     >
       <Image
         src="/logo-favicon.png"
@@ -437,7 +440,7 @@ function LogoIcon({ logo }: { logo: string | null }) {
           e.currentTarget.src = "/logo-favicon.png";
         }}
       />
-    </Link>
+    </button>
   );
 }
 
@@ -450,22 +453,24 @@ interface SidebarLinkProps {
 
 function SidebarLink({ item, isActive, open, onClick }: SidebarLinkProps) {
   const Icon = item.icon;
+  const router = useRouter();
   const isNavigationLink = item.href !== "#";
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    }
+    if (isNavigationLink) {
+      router.push(item.href);
+    }
+  };
+
   return (
-    <Link
-      href={item.href}
-      onClick={(e) => {
-        if (onClick) {
-          // For non-navigation links (like logout), prevent default
-          if (!isNavigationLink) {
-            e.preventDefault();
-          }
-          onClick();
-        }
-      }}
+    <button
+      type="button"
+      onClick={handleClick}
       className={cn(
-        "flex items-center gap-2 group/sidebar py-2 px-2 rounded-md transition-colors",
+        "flex items-center gap-2 group/sidebar py-2 px-2 rounded-md transition-colors w-full text-left cursor-pointer",
         open ? "justify-start" : "justify-center",
         isActive
           ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
@@ -494,7 +499,7 @@ function SidebarLink({ item, isActive, open, onClick }: SidebarLinkProps) {
       >
         {item.name}
       </motion.span>
-    </Link>
+    </button>
   );
 }
 

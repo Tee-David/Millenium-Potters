@@ -2,6 +2,7 @@ import { Router } from "express";
 import { UnionMemberController } from "../controllers/union-member.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { requireRole, requireAdmin } from "../middlewares/role.middleware";
+import { auditLog } from "../middlewares/audit.middleware";
 import { Role } from "@prisma/client";
 
 const router = Router();
@@ -13,6 +14,7 @@ router.use(authenticate);
 router.post(
   "/",
   requireRole(Role.ADMIN, Role.SUPERVISOR, Role.CREDIT_OFFICER),
+  auditLog("UNION_MEMBER_CREATED", "UnionMember"),
   UnionMemberController.createUnionMember
 );
 
@@ -26,6 +28,7 @@ router.get("/:id", UnionMemberController.getUnionMemberById);
 router.put(
   "/:id",
   requireRole(Role.ADMIN, Role.SUPERVISOR, Role.CREDIT_OFFICER),
+  auditLog("UNION_MEMBER_UPDATED", "UnionMember"),
   UnionMemberController.updateUnionMember
 );
 
@@ -33,6 +36,7 @@ router.put(
 router.delete(
   "/:id",
   requireRole(Role.ADMIN, Role.SUPERVISOR, Role.CREDIT_OFFICER),
+  auditLog("UNION_MEMBER_DELETED", "UnionMember"),
   UnionMemberController.deleteUnionMember
 );
 
@@ -40,6 +44,7 @@ router.delete(
 router.patch(
   "/:id/toggle-verification",
   requireRole(Role.ADMIN, Role.SUPERVISOR),
+  auditLog("UNION_MEMBER_VERIFICATION_TOGGLED", "UnionMember"),
   UnionMemberController.toggleVerification
 );
 
@@ -47,6 +52,7 @@ router.patch(
 router.post(
   "/:id/reassign",
   requireAdmin,
+  auditLog("UNION_MEMBER_REASSIGNED", "UnionMember"),
   UnionMemberController.reassignUnionMember
 );
 
