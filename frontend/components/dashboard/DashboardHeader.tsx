@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import {
   usersApi,
@@ -15,7 +16,6 @@ import {
   parseLoans,
   parseBranches,
 } from "@/lib/api-parser";
-import Link from "next/link";
 import {
   Home,
   Bell,
@@ -83,6 +83,11 @@ export default function DashboardHeader({
   onCustomizationClick,
 }: DashboardHeaderProps) {
   const { user } = useAuth();
+  const router = useRouter();
+
+  const navigate = (href: string) => {
+    router.push(href);
+  };
 
   return (
     <div className="bg-gradient-to-r from-white via-slate-50 to-blue-50 border-b border-gray-200 shadow-lg">
@@ -434,23 +439,23 @@ export default function DashboardHeader({
 
           {/* Quick Actions */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-            <Link href="/dashboard/business-management/customer">
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2">
-                <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Add Customer</span>
-                <span className="sm:hidden">Add</span>
-              </Button>
-            </Link>
-            <Link href="/dashboard/business-management/loan">
-              <Button
-                variant="outline"
-                className="text-emerald-600 border-emerald-600 hover:bg-emerald-50 text-xs sm:text-sm px-3 sm:px-4 py-2"
-              >
-                <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">New Loan</span>
-                <span className="sm:hidden">Loan</span>
-              </Button>
-            </Link>
+            <Button
+              onClick={() => navigate("/dashboard/business-management/customer")}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2"
+            >
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Add Customer</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
+            <Button
+              onClick={() => navigate("/dashboard/business-management/loan")}
+              variant="outline"
+              className="text-emerald-600 border-emerald-600 hover:bg-emerald-50 text-xs sm:text-sm px-3 sm:px-4 py-2"
+            >
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">New Loan</span>
+              <span className="sm:hidden">Loan</span>
+            </Button>
           </div>
         </div>
       </div>

@@ -13,7 +13,7 @@ import {
 } from "@/lib/api";
 import { parseUsers, parseLoans, safeGet } from "@/lib/api-parser";
 import { toast } from "sonner";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LoadingPage } from "@/components/LoadingStates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,7 +109,12 @@ interface DashboardData {
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
+
+  const navigate = (href: string) => {
+    router.push(href);
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -555,23 +560,23 @@ export default function DashboardPage() {
                 <RefreshCw className="h-4 w-4" />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
-              <Link href="/dashboard/business-management/customer">
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Add Member</span>
-                  <span className="sm:hidden">Add</span>
-                </Button>
-              </Link>
-              <Link href="/dashboard/business-management/loan">
-                <Button
-                  variant="outline"
-                  className="text-emerald-600 border-emerald-600 hover:bg-emerald-50 flex items-center gap-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span className="hidden sm:inline">New Loan</span>
-                  <span className="sm:hidden">Loan</span>
-                </Button>
-              </Link>
+              <Button
+                onClick={() => navigate("/dashboard/business-management/customer")}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Member</span>
+                <span className="sm:hidden">Add</span>
+              </Button>
+              <Button
+                onClick={() => navigate("/dashboard/business-management/loan")}
+                variant="outline"
+                className="text-emerald-600 border-emerald-600 hover:bg-emerald-50 flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">New Loan</span>
+                <span className="sm:hidden">Loan</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -837,16 +842,15 @@ export default function DashboardPage() {
                       <CreditCard className="h-5 w-5 text-blue-600" />
                       Recent Loans
                     </CardTitle>
-                    <Link href="/dashboard/business-management/loan">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        View All
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={() => navigate("/dashboard/business-management/loan")}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      View All
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -910,16 +914,15 @@ export default function DashboardPage() {
                       <UserCheck className="h-5 w-5 text-emerald-600" />
                       Recent Union Members
                     </CardTitle>
-                    <Link href="/dashboard/business-management/customer">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        View All
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={() => navigate("/dashboard/business-management/customer")}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      View All
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -999,15 +1002,14 @@ export default function DashboardPage() {
                           </p>
                         </div>
                       ))}
-                      <Link href="/dashboard/business-management/loan?filter=overdue">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-red-600 border-red-300 hover:bg-red-50"
-                        >
-                          View All Overdue
-                        </Button>
-                      </Link>
+                      <Button
+                        onClick={() => navigate("/dashboard/business-management/loan?filter=overdue")}
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-red-600 border-red-300 hover:bg-red-50"
+                      >
+                        View All Overdue
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -1211,11 +1213,12 @@ export default function DashboardPage() {
                     <CreditCard className="h-5 w-5 text-blue-600" />
                     All Loans
                   </CardTitle>
-                  <Link href="/dashboard/business-management/loan">
-                    <Button className="bg-emerald-600 hover:bg-emerald-700">
-                      Manage Loans
-                    </Button>
-                  </Link>
+                  <Button
+                    onClick={() => navigate("/dashboard/business-management/loan")}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    Manage Loans
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>
@@ -1341,11 +1344,12 @@ export default function DashboardPage() {
                     <UserCheck className="h-5 w-5 text-emerald-600" />
                     All Union Members
                   </CardTitle>
-                  <Link href="/dashboard/business-management/customer">
-                    <Button className="bg-emerald-600 hover:bg-emerald-700">
-                      Manage Customers
-                    </Button>
-                  </Link>
+                  <Button
+                    onClick={() => navigate("/dashboard/business-management/customer")}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    Manage Customers
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>

@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
@@ -210,9 +209,14 @@ interface AppSidebarProps {
 
 export function AppSidebar({ userRoles }: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [expandedSections, setExpandedSections] = React.useState<string[]>([]);
   const { logo } = useCompany();
   const { state } = useSidebar();
+
+  const navigate = (href: string) => {
+    router.push(href);
+  };
 
   const rolesArray = normalizeUserRoles(userRoles);
 
@@ -289,20 +293,18 @@ export function AppSidebar({ userRoles }: AppSidebarProps) {
                 {filteredMain.map((item) => (
                   <SidebarMenuItem key={item.name}>
                     <SidebarMenuButton
-                      asChild
                       isActive={isActive(item.href)}
                       tooltip={item.name}
+                      onClick={() => navigate(item.href)}
                       className={cn(
-                        "transition-all duration-200",
+                        "transition-all duration-200 cursor-pointer",
                         isActive(item.href)
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-emerald-600"
                           : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                       )}
                     >
-                      <Link href={item.href}>
-                        <item.icon className="w-5 h-5" />
-                        <span>{item.name}</span>
-                      </Link>
+                      <item.icon className="w-5 h-5" />
+                      <span>{item.name}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -360,20 +362,18 @@ export function AppSidebar({ userRoles }: AppSidebarProps) {
                     {section.items.map((item) => (
                       <SidebarMenuItem key={item.name}>
                         <SidebarMenuButton
-                          asChild
                           isActive={isActive(item.href)}
                           tooltip={item.name}
+                          onClick={() => navigate(item.href)}
                           className={cn(
-                            "transition-all duration-200",
+                            "transition-all duration-200 cursor-pointer",
                             isActive(item.href)
                               ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-emerald-600"
                               : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                           )}
                         >
-                          <Link href={item.href}>
-                            <item.icon className="w-4 h-4" />
-                            <span>{item.name}</span>
-                          </Link>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.name}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
