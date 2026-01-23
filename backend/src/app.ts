@@ -63,13 +63,16 @@ app.use(
   })
 );
 
-// Rate limiting - more lenient in development for testing
+// Rate limiting - configured for 50-100 concurrent users
+// Each user might make 10-20 requests per minute during active use
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: config.env === "production" ? 100 : 1000, // Higher limit for dev/test
+  max: config.env === "production" ? 500 : 2000, // 500 requests per 15 min in production
   message: "Too many requests from this IP, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting for health checks
+  skip: (req) => req.path === "/health" || req.path === "/api/health",
 });
 
 app.use("/api/", limiter);

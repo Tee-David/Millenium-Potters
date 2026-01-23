@@ -9,7 +9,9 @@ datasource db {
   provider  = "cockroachdb"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  // relationMode = "prisma"
+  // Connection pooling is handled via DATABASE_URL params:
+  // ?connection_limit=20&pool_timeout=20
+  // For 50-100 users, set connection_limit to ~20-30 in your DATABASE_URL
 }
 
 // ---------- Enums ----------
