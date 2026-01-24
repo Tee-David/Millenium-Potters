@@ -759,16 +759,25 @@ export default function LoanCreatePage() {
         errors.push("Maximum term must be at least 1");
       }
 
-      // Validate term against loan type limit
+      // Validate term against loan type limits
       const selectedLoanType = loanTypes.find(
         (t) => t.id === formData.loanType
       );
-      if (selectedLoanType && maxTerm > selectedLoanType.maxTerm) {
-        errors.push(
-          `Loan term cannot exceed ${
-            selectedLoanType.maxTerm
-          } ${selectedLoanType.termUnit.toLowerCase()}(s) for this loan type`
-        );
+      if (selectedLoanType) {
+        if (selectedLoanType.minTerm && maxTerm < selectedLoanType.minTerm) {
+          errors.push(
+            `Loan term must be at least ${
+              selectedLoanType.minTerm
+            } ${selectedLoanType.termUnit.toLowerCase()}(s) for this loan type`
+          );
+        }
+        if (selectedLoanType.maxTerm && maxTerm > selectedLoanType.maxTerm) {
+          errors.push(
+            `Loan term cannot exceed ${
+              selectedLoanType.maxTerm
+            } ${selectedLoanType.termUnit.toLowerCase()}(s) for this loan type`
+          );
+        }
       }
     }
 

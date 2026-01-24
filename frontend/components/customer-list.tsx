@@ -69,7 +69,7 @@ import {
   Columns,
   MoreHorizontal,
 } from "lucide-react";
-import Link from "next/link";
+// Link removed - using router.push for navigation to hide URLs
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -1362,12 +1362,12 @@ export function CustomerList() {
                                 </Avatar>
                               </div>
                               <div className="min-w-0 flex-1">
-                                <Link
-                                  href={`/dashboard/business-management/customer/${customer.id}`}
-                                  className="text-sm font-semibold text-gray-900 hover:text-emerald-600 transition-colors block truncate"
+                                <button
+                                  onClick={() => router.push(`/dashboard/business-management/customer/${customer.id}`)}
+                                  className="text-sm font-semibold text-gray-900 hover:text-emerald-600 transition-colors block truncate text-left cursor-pointer"
                                 >
                                   {customer.name}
-                                </Link>
+                                </button>
                                 <div className="text-xs text-gray-500 font-mono truncate">
                                   ID: {customer.id}
                                 </div>
@@ -1471,30 +1471,24 @@ export function CustomerList() {
                         {visibleCols.action && (
                           <TableCell className="px-4 sm:px-6 py-4 sm:py-6 whitespace-nowrap text-sm font-medium">
                             <div className="flex items-center justify-end space-x-1 sm:space-x-2">
-                              <Link
-                                href={`/dashboard/business-management/customer/${customer.id}`}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg p-1.5 sm:p-2"
+                                title={`View details of ${customer.name}`}
+                                onClick={() => router.push(`/dashboard/business-management/customer/${customer.id}`)}
                               >
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg p-1.5 sm:p-2"
-                                  title={`View details of ${customer.name}`}
-                                >
-                                  <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                                </Button>
-                              </Link>
-                              <Link
-                                href={`/dashboard/business-management/customer/${customer.id}/edit`}
+                                <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg p-1.5 sm:p-2"
+                                title={`Edit ${customer.name}`}
+                                onClick={() => router.push(`/dashboard/business-management/customer/${customer.id}/edit`)}
                               >
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg p-1.5 sm:p-2"
-                                  title={`Edit ${customer.name}`}
-                                >
-                                  <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                                </Button>
-                              </Link>
+                                <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </Button>
                               {currentUser?.role === "ADMIN" && (
                                 <Button
                                   variant="ghost"

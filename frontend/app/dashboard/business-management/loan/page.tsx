@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -252,6 +252,7 @@ function DateRangePicker({
 
 function LoanListPageContent() {
   const { user: currentUser } = useAuth();
+  const router = useRouter();
 
   // State management
   const [loans, setLoans] = useState<LoanWithRelations[]>([]);
@@ -1057,26 +1058,25 @@ function LoanListPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-950">
-      {/* Modern Header */}
-      <div className="relative bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 dark:from-slate-800 dark:via-slate-900 dark:to-black pb-32">
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+      {/* Clean Header */}
+      <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Breadcrumb */}
-          <div className="pt-6">
+          <div className="mb-4">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink
                     href="/dashboard"
-                    className="text-white/80 hover:text-white"
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                   >
                     Dashboard
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="text-white/60" />
+                <BreadcrumbSeparator className="text-gray-400" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-white font-semibold">
+                  <BreadcrumbPage className="text-gray-900 dark:text-white font-medium">
                     Loans
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -1085,39 +1085,38 @@ function LoanListPageContent() {
           </div>
 
           {/* Header Content */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 mt-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="flex items-center gap-6">
-                <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
-                  <CreditCard className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                    Loan Management
-                  </h1>
-                  <p className="text-gray-600 mt-1">
-                    Manage and track all loan applications and disbursements
-                  </p>
-                </div>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                <CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  Loan Management
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Manage and track all loan applications
+                </p>
+              </div>
+            </div>
 
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  className="bg-white hover:bg-gray-50 shadow-sm"
-                  onClick={() => setFilterVisible(!filterVisible)}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-                <Button
-                  asChild
-                  className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-lg"
-                >
-                  <Link href="/dashboard/business-management/loan/create">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add New Loan
-                  </Link>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-200 dark:border-gray-700"
+                onClick={() => setFilterVisible(!filterVisible)}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => router.push("/dashboard/business-management/loan/create")}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Loan
                 </Button>
               </div>
             </div>
@@ -1126,16 +1125,15 @@ function LoanListPageContent() {
       </div>
 
       {/* Main Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <SummaryCard
             title="Total Loans"
             value={loans.length}
-            icon={<CreditCard className="h-6 w-6 text-white" />}
-            color="green"
+            icon={<CreditCard className="h-5 w-5 text-white" />}
+            color="blue"
             subtitle="All time"
-            trend={{ value: 12, isPositive: true }}
           />
           <SummaryCard
             title="Active Loans"
@@ -1144,23 +1142,21 @@ function LoanListPageContent() {
                 (loan) => loan.status === "ACTIVE" || loan.status === "APPROVED"
               ).length
             }
-            icon={<Activity className="h-6 w-6 text-white" />}
-            color="emerald"
+            icon={<Activity className="h-5 w-5 text-white" />}
+            color="indigo"
             subtitle="Currently active"
-            trend={{ value: 8, isPositive: true }}
           />
           <SummaryCard
             title="Total Amount"
             value={formatNaira(
               loans.reduce((sum, loan) => sum + Number(loan.principalAmount), 0)
             )}
-            icon={<span className="text-white font-bold text-lg">₦</span>}
-            color="teal"
+            icon={<span className="text-white font-bold text-sm">₦</span>}
+            color="violet"
             subtitle="Principal amount"
-            trend={{ value: 15, isPositive: true }}
           />
           <SummaryCard
-            title="Total Left to Pay"
+            title="Outstanding"
             value={formatNaira(
               loans
                 .filter(
@@ -1168,7 +1164,6 @@ function LoanListPageContent() {
                     loan.status === "ACTIVE" || loan.status === "APPROVED"
                 )
                 .reduce((sum, loan) => {
-                  // Use totalOutstanding if available, otherwise calculate from principal
                   const outstanding =
                     loan.totalOutstanding !== undefined
                       ? loan.totalOutstanding
@@ -1176,24 +1171,23 @@ function LoanListPageContent() {
                   return sum + outstanding;
                 }, 0)
             )}
-            icon={<AlertCircle className="h-6 w-6 text-white" />}
-            color="orange"
-            subtitle="Active loans outstanding"
+            icon={<AlertCircle className="h-5 w-5 text-white" />}
+            color="amber"
+            subtitle="Active loans"
           />
           <SummaryCard
-            title="Pending Approval"
+            title="Pending"
             value={
               loans.filter((loan) => loan.status === "PENDING_APPROVAL").length
             }
-            icon={<Clock className="h-6 w-6 text-white" />}
-            color="orange"
+            icon={<Clock className="h-5 w-5 text-white" />}
+            color="slate"
             subtitle="Awaiting review"
-            trend={{ value: -5, isPositive: false }}
           />
         </div>
 
         {/* Filters and Controls */}
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900">
           <CardHeader className="pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -1877,19 +1871,19 @@ function LoanListPageContent() {
                         {visibleCols.action && (
                           <TableCell className="py-4">
                             <div className="flex items-center space-x-2">
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link
-                                  href={`/dashboard/business-management/loan/${loan.id}`}
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Link>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.push(`/dashboard/business-management/loan/${loan.id}`)}
+                              >
+                                <Eye className="w-4 h-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link
-                                  href={`/dashboard/business-management/loan/${loan.id}/edit`}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Link>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.push(`/dashboard/business-management/loan/${loan.id}/edit`)}
+                              >
+                                <Edit className="w-4 h-4" />
                               </Button>
                               <Button
                                 variant="ghost"

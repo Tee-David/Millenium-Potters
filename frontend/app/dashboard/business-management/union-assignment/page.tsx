@@ -17,6 +17,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -42,7 +52,11 @@ import {
   X,
   Mail,
   Phone,
+  CheckSquare,
+  Square,
+  Users,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Union {
   id: string;
@@ -96,6 +110,12 @@ export default function UnionAssignmentPage() {
   const [selectedOfficerId, setSelectedOfficerId] = useState<string>("");
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Bulk selection states
+  const [selectedUnions, setSelectedUnions] = useState<Set<string>>(new Set());
+  const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
+  const [bulkOfficerId, setBulkOfficerId] = useState<string>("");
+  const [bulkReason, setBulkReason] = useState("");
 
   useEffect(() => {
     loadData();
@@ -217,6 +237,75 @@ export default function UnionAssignmentPage() {
     setSelectedUnion(union);
     setSelectedOfficerId(union.creditOfficerId || "");
     setIsAssignDialogOpen(true);
+  };
+
+  // Bulk selection handlers
+  const toggleUnionSelection = (unionId: string) => {
+    setSelectedUnions((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(unionId)) {
+        newSet.delete(unionId);
+      } else {
+        newSet.add(unionId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllUnions = () => {
+    if (selectedUnions.size === filteredUnions.length) {
+      setSelectedUnions(new Set());
+    } else {
+      setSelectedUnions(new Set(filteredUnions.map((u) => u.id)));
+    }
+  };
+
+  const handleBulkAssign = async () => {
+    if (selectedUnions.size === 0 || !bulkOfficerId) {
+      toast.error("Please select unions and a credit officer");
+      return;
+    }
+
+    setIsSubmitting(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      const promises = Array.from(selectedUnions).map(async (unionId) => {
+        try {
+          const response = await unionsApi.assign(unionId, {
+            creditOfficerId: bulkOfficerId,
+            reason: bulkReason || undefined,
+          });
+          if (response.data.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch {
+          failCount++;
+        }
+      });
+
+      await Promise.all(promises);
+
+      if (successCount > 0) {
+        toast.success(`Successfully assigned ${successCount} union(s)`);
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to assign ${failCount} union(s)`);
+      }
+
+      setIsBulkAssignDialogOpen(false);
+      setSelectedUnions(new Set());
+      setBulkOfficerId("");
+      setBulkReason("");
+      loadData();
+    } catch (err: any) {
+      toast.error("Bulk assignment failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filteredUnions = useMemo(() => {
@@ -426,6 +515,41 @@ export default function UnionAssignmentPage() {
         </CardContent>
       </Card>
 
+      {/* Bulk Action Bar */}
+      {selectedUnions.size > 0 && (
+        <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="h-5 w-5 text-blue-600" />
+                <span className="font-medium text-blue-900 dark:text-blue-100">
+                  {selectedUnions.size} union(s) selected
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedUnions(new Set())}
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Clear
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setIsBulkAssignDialogOpen(true)}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Users className="h-4 w-4" />
+                  Bulk Assign
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Unions Table */}
       <Card className="bg-white shadow-sm">
         <CardHeader>
@@ -459,6 +583,12 @@ export default function UnionAssignmentPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedUnions.size === filteredUnions.length && filteredUnions.length > 0}
+                        onCheckedChange={selectAllUnions}
+                      />
+                    </TableHead>
                     <TableHead>Union</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Current Officer</TableHead>
@@ -469,7 +599,13 @@ export default function UnionAssignmentPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredUnions.map((union) => (
-                    <TableRow key={union.id}>
+                    <TableRow key={union.id} className={selectedUnions.has(union.id) ? "bg-blue-50 dark:bg-blue-900/20" : ""}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedUnions.has(union.id)}
+                          onCheckedChange={() => toggleUnionSelection(union.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Building2 className="h-4 w-4 text-gray-400" />
@@ -612,6 +748,86 @@ export default function UnionAssignmentPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Assign Dialog */}
+      <Dialog open={isBulkAssignDialogOpen} onOpenChange={setIsBulkAssignDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Bulk Assign Credit Officer</DialogTitle>
+            <DialogDescription>
+              Assign {selectedUnions.size} selected union(s) to a credit officer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Selected Unions ({selectedUnions.size})</Label>
+              <div className="max-h-32 overflow-y-auto bg-gray-50 dark:bg-gray-800 rounded-md p-3 space-y-1">
+                {Array.from(selectedUnions).map((id) => {
+                  const union = unions.find((u) => u.id === id);
+                  return (
+                    <div key={id} className="flex items-center gap-2 text-sm">
+                      <Building2 className="h-3 w-3 text-gray-400" />
+                      <span>{union?.name || id}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bulk-credit-officer">
+                Credit Officer <span className="text-red-500">*</span>
+              </Label>
+              <SearchableSelect
+                value={bulkOfficerId}
+                onValueChange={setBulkOfficerId}
+                placeholder="Select credit officer"
+                searchPlaceholder="Search credit officers..."
+                options={creditOfficers.map((officer) => ({
+                  value: officer.id,
+                  label: `${getOfficerName(officer)} (${officer.email})`,
+                }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bulk-reason">Reason (Optional)</Label>
+              <Textarea
+                id="bulk-reason"
+                value={bulkReason}
+                onChange={(e) => setBulkReason(e.target.value)}
+                placeholder="Enter reason for bulk assignment..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsBulkAssignDialogOpen(false);
+                setBulkOfficerId("");
+                setBulkReason("");
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBulkAssign}
+              disabled={isSubmitting || !bulkOfficerId}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Assigning...
+                </>
+              ) : (
+                `Assign ${selectedUnions.size} Union(s)`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
         </TabsContent>
 
         <TabsContent value="member" className="mt-6 space-y-6">
@@ -654,6 +870,16 @@ function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
   const [reassignReason, setReassignReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Bulk selection states
+  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+  const [isBulkReassignDialogOpen, setIsBulkReassignDialogOpen] = useState(false);
+  const [bulkUnionId, setBulkUnionId] = useState<string>("");
+  const [bulkReassignReason, setBulkReassignReason] = useState("");
+
+  // Double confirmation states
+  const [showFinalConfirmation, setShowFinalConfirmation] = useState(false);
+  const [showBulkFinalConfirmation, setShowBulkFinalConfirmation] = useState(false);
+
   useEffect(() => {
     loadMembers();
   }, []);
@@ -686,6 +912,7 @@ function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
 
       if (response.data.success) {
         toast.success("Member reassigned successfully");
+        setShowFinalConfirmation(false);
         setIsReassignDialogOpen(false);
         setSelectedMember(null);
         setSelectedUnionId("");
@@ -708,6 +935,77 @@ function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
     setSelectedMember(member);
     setSelectedUnionId("");
     setIsReassignDialogOpen(true);
+  };
+
+  // Bulk selection handlers
+  const toggleMemberSelection = (memberId: string) => {
+    setSelectedMembers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(memberId)) {
+        newSet.delete(memberId);
+      } else {
+        newSet.add(memberId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllMembers = () => {
+    if (selectedMembers.size === filteredMembers.length) {
+      setSelectedMembers(new Set());
+    } else {
+      setSelectedMembers(new Set(filteredMembers.map((m) => m.id)));
+    }
+  };
+
+  const handleBulkReassign = async () => {
+    if (selectedMembers.size === 0 || !bulkUnionId) {
+      toast.error("Please select members and a union");
+      return;
+    }
+
+    setIsSubmitting(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      const promises = Array.from(selectedMembers).map(async (memberId) => {
+        try {
+          const response = await unionMembersApi.reassign(memberId, {
+            newUnionId: bulkUnionId,
+            reason: bulkReassignReason || undefined,
+          });
+          if (response.data.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch {
+          failCount++;
+        }
+      });
+
+      await Promise.all(promises);
+
+      if (successCount > 0) {
+        toast.success(`Successfully reassigned ${successCount} member(s)`);
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to reassign ${failCount} member(s)`);
+      }
+
+      setShowBulkFinalConfirmation(false);
+      setIsBulkReassignDialogOpen(false);
+      setSelectedMembers(new Set());
+      setBulkUnionId("");
+      setBulkReassignReason("");
+      loadMembers();
+      onRefresh();
+    } catch (err: any) {
+      toast.error("Bulk reassignment failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filteredMembers = useMemo(() => {
@@ -786,6 +1084,41 @@ function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
         </CardContent>
       </Card>
 
+      {/* Bulk Action Bar for Members */}
+      {selectedMembers.size > 0 && (
+        <Card className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
+          <CardContent className="py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="h-5 w-5 text-green-600" />
+                <span className="font-medium text-green-900 dark:text-green-100">
+                  {selectedMembers.size} member(s) selected
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedMembers(new Set())}
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Clear
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setIsBulkReassignDialogOpen(true)}
+                  className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Users className="h-4 w-4" />
+                  Bulk Reassign
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Members Table */}
       <Card className="bg-white dark:bg-gray-800 shadow-sm">
         <CardHeader>
@@ -811,6 +1144,12 @@ function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedMembers.size === filteredMembers.length && filteredMembers.length > 0}
+                        onCheckedChange={selectAllMembers}
+                      />
+                    </TableHead>
                     <TableHead>Member</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Current Union</TableHead>
@@ -819,7 +1158,13 @@ function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.map((member) => (
-                    <TableRow key={member.id}>
+                    <TableRow key={member.id} className={selectedMembers.has(member.id) ? "bg-green-50 dark:bg-green-900/20" : ""}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedMembers.has(member.id)}
+                          onCheckedChange={() => toggleMemberSelection(member.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-gray-400" />
@@ -942,8 +1287,35 @@ function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
               Cancel
             </Button>
             <Button
-              onClick={handleReassign}
+              onClick={() => setShowFinalConfirmation(true)}
               disabled={isSubmitting || !selectedUnionId}
+            >
+              Continue to Reassign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Final Confirmation for Single Member Reassignment */}
+      <AlertDialog open={showFinalConfirmation} onOpenChange={setShowFinalConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Member Reassignment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reassign <strong>{selectedMember?.firstName} {selectedMember?.lastName}</strong> to a different union?
+              <ul className="list-disc ml-6 mt-2 space-y-1">
+                <li>The member will be moved to the new union</li>
+                <li>Their loans will be transferred to the new credit officer</li>
+                <li>This action cannot be undone</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleReassign}
+              disabled={isSubmitting}
+              className="bg-green-600 hover:bg-green-700"
             >
               {isSubmitting ? (
                 <>
@@ -951,12 +1323,119 @@ function MemberAssignmentTab({ unions, onRefresh }: MemberAssignmentTabProps) {
                   Reassigning...
                 </>
               ) : (
-                "Reassign"
+                "Yes, Reassign Member"
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Reassign Dialog for Members */}
+      <Dialog open={isBulkReassignDialogOpen} onOpenChange={setIsBulkReassignDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Bulk Reassign Members</DialogTitle>
+            <DialogDescription>
+              Reassign {selectedMembers.size} selected member(s) to a new union.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Selected Members ({selectedMembers.size})</Label>
+              <div className="max-h-32 overflow-y-auto bg-gray-50 dark:bg-gray-800 rounded-md p-3 space-y-1">
+                {Array.from(selectedMembers).map((id) => {
+                  const member = members.find((m) => m.id === id);
+                  return (
+                    <div key={id} className="flex items-center gap-2 text-sm">
+                      <User className="h-3 w-3 text-gray-400" />
+                      <span>{member ? `${member.firstName} ${member.lastName}` : id}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bulk-new-union">
+                New Union <span className="text-red-500">*</span>
+              </Label>
+              <SearchableSelect
+                value={bulkUnionId}
+                onValueChange={setBulkUnionId}
+                placeholder="Select new union"
+                searchPlaceholder="Search unions..."
+                options={unions.map((union) => ({
+                  value: union.id,
+                  label: union.name,
+                }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bulk-reassign-reason">Reason (Optional)</Label>
+              <Textarea
+                id="bulk-reassign-reason"
+                value={bulkReassignReason}
+                onChange={(e) => setBulkReassignReason(e.target.value)}
+                placeholder="Enter reason for bulk reassignment..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsBulkReassignDialogOpen(false);
+                setBulkUnionId("");
+                setBulkReassignReason("");
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => setShowBulkFinalConfirmation(true)}
+              disabled={isSubmitting || !bulkUnionId}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Continue to Reassign
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Final Confirmation for Bulk Member Reassignment */}
+      <AlertDialog open={showBulkFinalConfirmation} onOpenChange={setShowBulkFinalConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Bulk Reassignment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reassign <strong>{selectedMembers.size} member(s)</strong> to a new union?
+              <ul className="list-disc ml-6 mt-2 space-y-1">
+                <li>All selected members will be moved to the new union</li>
+                <li>Their loans will be transferred to the new credit officer</li>
+                <li>This action cannot be undone</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkReassign}
+              disabled={isSubmitting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Reassigning...
+                </>
+              ) : (
+                `Yes, Reassign ${selectedMembers.size} Member(s)`
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

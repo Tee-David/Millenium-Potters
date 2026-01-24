@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
+// Link removed - using router.push for navigation to hide URLs
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,7 +63,18 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -368,6 +379,7 @@ export default function LoanDetailPage() {
     notes: "",
   });
   const [isStatusUpdating, setIsStatusUpdating] = useState(false);
+  const [showFinalConfirmation, setShowFinalConfirmation] = useState(false);
 
   useEffect(() => {
     loadLoanData();
@@ -398,6 +410,7 @@ export default function LoanDetailPage() {
       toast.success(
         `Loan ${statusUpdateData.status.toLowerCase()} successfully`
       );
+      setShowFinalConfirmation(false);
       setIsStatusModalOpen(false);
       setStatusUpdateData({ status: "", notes: "" });
       loadLoanData(); // Reload loan data
@@ -1558,18 +1571,15 @@ export default function LoanDetailPage() {
                           </TableCell>
                           <TableCell className="py-4">
                             <div className="flex items-center gap-2">
-                              <Link
-                                href={`/dashboard/business-management/loan-payment/repayment/${repayment.id}`}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-200 hover:from-blue-100 hover:to-indigo-100"
+                                onClick={() => router.push(`/dashboard/business-management/loan-payment/repayment/${repayment.id}`)}
                               >
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-200 hover:from-blue-100 hover:to-indigo-100"
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
-                                </Button>
-                              </Link>
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -1617,6 +1627,65 @@ export default function LoanDetailPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Final Confirmation Dialog (Double Confirmation) */}
+        <AlertDialog open={showFinalConfirmation} onOpenChange={setShowFinalConfirmation}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {statusUpdateData.status === "APPROVED"
+                  ? "Confirm Loan Approval"
+                  : "Confirm Loan Rejection"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {statusUpdateData.status === "APPROVED" ? (
+                  <>
+                    Are you sure you want to approve this loan? This action will:
+                    <ul className="list-disc ml-6 mt-2 space-y-1">
+                      <li>Generate the repayment schedule</li>
+                      <li>Make the loan active for disbursement</li>
+                      <li>Notify the credit officer</li>
+                    </ul>
+                    <p className="mt-3 font-medium">This action cannot be undone.</p>
+                  </>
+                ) : (
+                  <>
+                    Are you sure you want to reject this loan? This action will:
+                    <ul className="list-disc ml-6 mt-2 space-y-1">
+                      <li>Cancel the loan application</li>
+                      <li>Notify the credit officer of the rejection</li>
+                      <li>Record the rejection reason in the system</li>
+                    </ul>
+                    <p className="mt-3 font-medium">This action cannot be undone.</p>
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isStatusUpdating}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleStatusUpdate}
+                disabled={isStatusUpdating}
+                className={
+                  statusUpdateData.status === "APPROVED"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }
+              >
+                {isStatusUpdating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </>
+                ) : statusUpdateData.status === "APPROVED" ? (
+                  "Yes, Approve Loan"
+                ) : (
+                  "Yes, Reject Loan"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Status Update Modal */}
         <Dialog open={isStatusModalOpen} onOpenChange={setIsStatusModalOpen}>
@@ -1680,7 +1749,17 @@ export default function LoanDetailPage() {
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleStatusUpdate}
+                  onClick={() => {
+                    // Validate before showing final confirmation
+                    if (
+                      statusUpdateData.status === "REJECTED" &&
+                      !statusUpdateData.notes.trim()
+                    ) {
+                      toast.error("Please provide a reason for rejection");
+                      return;
+                    }
+                    setShowFinalConfirmation(true);
+                  }}
                   disabled={isStatusUpdating}
                   className={
                     statusUpdateData.status === "APPROVED"
@@ -1688,15 +1767,10 @@ export default function LoanDetailPage() {
                       : "bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white shadow-lg"
                   }
                 >
-                  {isStatusUpdating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Processing...
-                    </>
-                  ) : statusUpdateData.status === "APPROVED" ? (
-                    "Approve"
+                  {statusUpdateData.status === "APPROVED" ? (
+                    "Continue to Approve"
                   ) : (
-                    "Reject"
+                    "Continue to Reject"
                   )}
                 </Button>
               </div>

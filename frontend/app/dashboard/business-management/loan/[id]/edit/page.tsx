@@ -632,6 +632,23 @@ export default function LoanEditPage() {
       return;
     }
 
+    // Validate term against loan type limits
+    const termCount = parseInt(formData.loanTermMax);
+    if (!isNaN(termCount)) {
+      if (currentLoanType.minTerm && termCount < currentLoanType.minTerm) {
+        toast.error(
+          `Loan term must be at least ${currentLoanType.minTerm} ${currentLoanType.termUnit.toLowerCase()}(s) for this loan type`
+        );
+        return;
+      }
+      if (currentLoanType.maxTerm && termCount > currentLoanType.maxTerm) {
+        toast.error(
+          `Loan term cannot exceed ${currentLoanType.maxTerm} ${currentLoanType.termUnit.toLowerCase()}(s) for this loan type`
+        );
+        return;
+      }
+    }
+
     // Build update payload (excluding customerId and assignedOfficerId which have separate endpoints)
     const payload: any = {};
 
