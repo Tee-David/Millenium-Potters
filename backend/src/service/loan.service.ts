@@ -552,6 +552,10 @@ export class LoanService {
       },
     });
 
+    if (!loan) {
+      throw new Error("Loan not found");
+    }
+
     // Permission check based on role
     if (userRole === Role.ADMIN) {
       // ADMIN can view all loans - no restrictions
@@ -928,7 +932,7 @@ export class LoanService {
     }
 
     // Only return schedules for APPROVED, ACTIVE, COMPLETED, or DEFAULTED loans
-    const allowedStatuses = [
+    const allowedStatuses: LoanStatus[] = [
       LoanStatus.APPROVED,
       LoanStatus.ACTIVE,
       LoanStatus.COMPLETED,
