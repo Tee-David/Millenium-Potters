@@ -10,10 +10,10 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
-// Create union (admin, supervisor)
+// Create union (admin, supervisor, credit officer)
 router.post(
   "/",
-  requireRole(Role.ADMIN, Role.SUPERVISOR),
+  requireRole(Role.ADMIN, Role.SUPERVISOR, Role.CREDIT_OFFICER),
   auditLog("UNION_CREATED", "Union"),
   UnionController.createUnion
 );
