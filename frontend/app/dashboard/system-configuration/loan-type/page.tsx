@@ -33,6 +33,7 @@ import {
   FileText,
   Copy,
   RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { DeleteConfirmationModal } from "@/components/modals/delete-confirmation-modal";
 import { UpdateConfirmationModal } from "@/components/modals/update-confirmation-modal";
@@ -262,6 +263,7 @@ function LoanTypePageContent() {
   const [editingLoanType, setEditingLoanType] = useState<LoanType | null>(null);
   const [toDeleteLoanId, setToDeleteLoanId] = useState<string | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeleteSecondConfirmOpen, setIsDeleteSecondConfirmOpen] = useState(false);
   const [isUpdateConfirmOpen, setIsUpdateConfirmOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -503,7 +505,13 @@ function LoanTypePageContent() {
     setIsDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
+    // First confirmation -> show second confirmation with warning
+    setIsDeleteConfirmOpen(false);
+    setIsDeleteSecondConfirmOpen(true);
+  };
+
+  const confirmDeleteFinal = async () => {
     if (!toDeleteLoanId) return;
     try {
       setIsDeleting(true);
@@ -511,8 +519,8 @@ function LoanTypePageContent() {
       toast.success("Loan type deleted successfully");
       await fetchLoanTypes();
       setToDeleteLoanId(null);
-      setIsDeleteConfirmOpen(false);
-    } catch (error) {
+      setIsDeleteSecondConfirmOpen(false);
+    } catch (error: any) {
       console.error("Failed to delete loan type:", error);
 
       // Handle database errors with custom message
@@ -525,10 +533,22 @@ function LoanTypePageContent() {
         return;
       }
 
-      toast.error("Failed to delete loan type");
+      // Check for specific error about loans using this type
+      if (error.response?.data?.message?.includes("loans")) {
+        toast.error("Cannot delete loan type: There are existing loans using this type");
+        return;
+      }
+
+      toast.error(error.response?.data?.message || "Failed to delete loan type");
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteConfirmOpen(false);
+    setIsDeleteSecondConfirmOpen(false);
+    setToDeleteLoanId(null);
   };
 
   const exportToExcel = () => {
@@ -742,12 +762,22 @@ function LoanTypePageContent() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => openEditDialog(loanType)}
-                              disabled={isAuthLoading || !currentUser}
-                              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200"
+                              disabled={true}
+                              className="text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
+                              title="Loan types cannot be edited once created"
                             >
                               <Edit className="w-4 h-4 mr-1" />
                               Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => requestDelete(loanType.id)}
+                              disabled={isDeleting}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Delete
                             </Button>
                           </div>
                         </td>
@@ -819,17 +849,72 @@ function LoanTypePageContent() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - Step 1 */}
       <DeleteConfirmationModal
         isOpen={isDeleteConfirmOpen}
-        onClose={() => setIsDeleteConfirmOpen(false)}
+        onClose={cancelDelete}
         onConfirm={confirmDelete}
-        isLoading={isDeleting}
+        isLoading={false}
         itemName={
           loanTypes.find((lt) => lt.id === toDeleteLoanId)?.name ??
           "this loan type"
         }
       />
+
+      {/* Delete Confirmation Modal - Step 2 (Final Confirmation with Warning) */}
+      <Dialog open={isDeleteSecondConfirmOpen} onOpenChange={(open) => !open && cancelDelete()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Final Confirmation Required
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-800 font-medium mb-2">
+                Warning: This action cannot be undone!
+              </p>
+              <ul className="text-sm text-red-700 list-disc list-inside space-y-1">
+                <li>The loan type &quot;{loanTypes.find((lt) => lt.id === toDeleteLoanId)?.name}&quot; will be permanently deleted</li>
+                <li>This loan type will no longer be available for new loans</li>
+                <li>Existing loans with this type will retain their current settings</li>
+                <li>Historical data will remain but the loan type cannot be reassigned</li>
+              </ul>
+            </div>
+            <p className="text-sm text-gray-600">
+              Are you absolutely sure you want to proceed with deleting this loan type?
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={cancelDelete}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteFinal}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Yes, Delete Permanently
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Update Confirmation Modal */}
       <UpdateConfirmationModal

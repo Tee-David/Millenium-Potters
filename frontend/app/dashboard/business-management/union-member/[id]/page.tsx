@@ -148,8 +148,15 @@ function UnionMemberDetailPageContent() {
         return;
       }
 
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api";
+      // First, find the document in member.documents to check if it has a direct URL
+      const doc = member?.documents?.find((d: any) => d.id === docId);
+      if (doc?.fileUrl && doc.fileUrl.startsWith("http")) {
+        // Direct URL (Cloudinary) - open directly
+        window.open(doc.fileUrl, "_blank");
+        return;
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const documentUrl = `${apiUrl}/documents/serve/${docId}`;
 
       const response = await fetch(documentUrl, {
@@ -167,10 +174,20 @@ function UnionMemberDetailPageContent() {
         return;
       }
 
+      const contentType = response.headers.get("content-type") || "application/octet-stream";
+
+      // Check if response is JSON (for Cloudinary URLs)
+      if (contentType.includes("application/json")) {
+        const jsonData = await response.json();
+        if (jsonData.success && jsonData.data?.url) {
+          window.open(jsonData.data.url, "_blank");
+          return;
+        }
+      }
+
+      // Otherwise, handle as blob (local files)
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const contentType =
-        response.headers.get("content-type") || "application/octet-stream";
 
       if (contentType.includes("pdf") || contentType.includes("image")) {
         window.open(url, "_blank");

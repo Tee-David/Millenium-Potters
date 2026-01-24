@@ -97,6 +97,15 @@ export function useAuth() {
     }
   };
 
+  const login = useCallback(async (accessToken: string, refreshToken: string) => {
+    // Store the tokens
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+
+    // Fetch the new user profile
+    await fetchUserProfile();
+  }, []);
+
   const hasRole = (requiredRoles: UserRole | UserRole[]): boolean => {
     if (!authState.user) return false;
 
@@ -162,6 +171,7 @@ export function useAuth() {
 
   return {
     ...authState,
+    login,
     logout,
     hasRole,
     hasAnyRole,

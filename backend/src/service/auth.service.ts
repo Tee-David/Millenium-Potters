@@ -376,4 +376,94 @@ export class AuthService {
 
     return { deleted: result.count };
   }
+
+  /**
+   * Admin impersonation - allows an admin to log in as another user
+   */
+  static async impersonateUser(
+    adminId: string,
+    targetUserId: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    // Verify admin exists and is actually an admin
+    const admin = await prisma.user.findUnique({
+      where: { id: adminId },
+    });
+
+    if (!admin || admin.role !== Role.ADMIN) {
+      throw new Error("Only administrators can impersonate users");
+    }
+
+    // Get target user
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+
+    if (!targetUser || targetUser.deletedAt) {
+      throw new Error("Target user not found");
+    }
+
+    if (!targetUser.isActive) {
+      throw new Error("Cannot impersonate an inactive user");
+    }
+
+    // Log the impersonation in audit log
+    await prisma.auditLog.create({
+      data: {
+        actorUserId: adminId,
+        action: "USER_IMPERSONATED",
+        entityName: "User",
+        entityId: targetUserId,
+        metadata: {
+          adminEmail: admin.email,
+          targetEmail: targetUser.email,
+          targetRole: targetUser.role,
+        },
+        ipAddress,
+        userAgent,
+      },
+    });
+
+    // Generate tokens for the target user with impersonation flag
+    const tokenPayload = {
+      userId: targetUser.id,
+      email: targetUser.email,
+      role: targetUser.role,
+    };
+
+    const { token: accessToken, jwtId } =
+      JwtUtil.generateAccessToken(tokenPayload);
+    const refreshToken = JwtUtil.generateRefreshToken(tokenPayload);
+
+    // Create session for impersonated user
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await prisma.staffSession.create({
+      data: {
+        userId: targetUser.id,
+        jwtId,
+        ipAddress,
+        userAgent: `${userAgent || ""} [Impersonated by ${admin.email}]`,
+        expiresAt,
+      },
+    });
+
+    return {
+      user: {
+        id: targetUser.id,
+        email: targetUser.email,
+        firstName: targetUser.firstName,
+        lastName: targetUser.lastName,
+        role: targetUser.role,
+      },
+      accessToken,
+      refreshToken,
+      impersonatedBy: {
+        id: admin.id,
+        email: admin.email,
+      },
+    };
+  }
 }

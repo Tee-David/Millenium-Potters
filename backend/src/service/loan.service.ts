@@ -464,12 +464,41 @@ export class LoanService {
     userUnionId?: string,
     userId?: string
   ) {
+    // First fetch the loan to check its status
+    const loanBasic = await prisma.loan.findUnique({
+      where: { id },
+      select: { status: true, deletedAt: true, unionId: true },
+    });
+
+    if (!loanBasic || loanBasic.deletedAt) {
+      throw new Error("Loan not found");
+    }
+
+    // Only include scheduleItems and repayments for APPROVED or ACTIVE loans
+    const includeScheduleData =
+      loanBasic.status === LoanStatus.APPROVED ||
+      loanBasic.status === LoanStatus.ACTIVE ||
+      loanBasic.status === LoanStatus.COMPLETED ||
+      loanBasic.status === LoanStatus.DEFAULTED;
+
     const loan = await prisma.loan.findUnique({
       where: { id },
       include: {
         unionMember: true,
         loanType: true,
-        union: true,
+        union: {
+          include: {
+            creditOfficer: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                role: true,
+              },
+            },
+          },
+        },
         assignedOfficer: {
           select: {
             id: true,
@@ -488,11 +517,11 @@ export class LoanService {
             role: true,
           },
         },
-        scheduleItems: {
+        scheduleItems: includeScheduleData ? {
           where: { deletedAt: null },
           orderBy: { sequence: "asc" },
-        },
-        repayments: {
+        } : false,
+        repayments: includeScheduleData ? {
           where: { deletedAt: null },
           include: {
             receivedBy: {
@@ -506,7 +535,7 @@ export class LoanService {
           },
           orderBy: { paidAt: "desc" },
           take: 10,
-        },
+        } : false,
         documents: {
           where: { deletedAt: null },
           include: {
@@ -522,10 +551,6 @@ export class LoanService {
         },
       },
     });
-
-    if (!loan || loan.deletedAt) {
-      throw new Error("Loan not found");
-    }
 
     // Permission check based on role
     if (userRole === Role.ADMIN) {
@@ -894,11 +919,26 @@ export class LoanService {
         assignedOfficerId: true,
         createdByUserId: true,
         unionId: true,
+        status: true,
       },
     });
 
     if (!loan || loan.deletedAt) {
       throw new Error("Loan not found");
+    }
+
+    // Only return schedules for APPROVED, ACTIVE, COMPLETED, or DEFAULTED loans
+    const allowedStatuses = [
+      LoanStatus.APPROVED,
+      LoanStatus.ACTIVE,
+      LoanStatus.COMPLETED,
+      LoanStatus.DEFAULTED,
+    ];
+
+    if (!allowedStatuses.includes(loan.status)) {
+      throw new Error(
+        "Repayment schedule is only available for approved or active loans"
+      );
     }
 
     // Permission check based on role

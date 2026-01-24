@@ -4,6 +4,40 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Gender options
+const GENDER_OPTIONS = [
+  { value: "MALE", label: "Male" },
+  { value: "FEMALE", label: "Female" },
+  { value: "OTHER", label: "Other" },
+];
+
+// Marital status options
+const MARITAL_STATUS_OPTIONS = [
+  { value: "SINGLE", label: "Single" },
+  { value: "MARRIED", label: "Married" },
+  { value: "DIVORCED", label: "Divorced" },
+  { value: "WIDOWED", label: "Widowed" },
+];
+
+// Country options (with Nigeria first since this is a Nigerian app)
+const COUNTRY_OPTIONS = [
+  { value: "Nigeria", label: "Nigeria" },
+  { value: "Ghana", label: "Ghana" },
+  { value: "Kenya", label: "Kenya" },
+  { value: "South Africa", label: "South Africa" },
+  { value: "United Kingdom", label: "United Kingdom" },
+  { value: "United States", label: "United States" },
+  { value: "Canada", label: "Canada" },
+  { value: "Other", label: "Other" },
+];
 
 export function UnionMemberDetailsForm({
   formData,
@@ -178,22 +212,54 @@ export function UnionMemberDetailsForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="gender">Gender</Label>
+          <Label htmlFor="dateOfBirth">Date of Birth</Label>
           <Input
-            id="gender"
-            placeholder="Enter gender"
-            value={formData.gender}
-            onChange={(e) => handleChange("gender", e.target.value)}
+            id="dateOfBirth"
+            type="date"
+            placeholder="Select date of birth"
+            value={formData.dateOfBirth || ""}
+            onChange={(e) => handleChange("dateOfBirth", e.target.value)}
+            max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split("T")[0]}
           />
+          <p className="text-xs text-muted-foreground">
+            Must be at least 16 years old
+          </p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="gender">Gender</Label>
+          <Select
+            value={formData.gender}
+            onValueChange={(val) => handleChange("gender", val)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              {GENDER_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="maritalStatus">Marital Status</Label>
-          <Input
-            id="maritalStatus"
-            placeholder="Enter marital status"
+          <Select
             value={formData.maritalStatus}
-            onChange={(e) => handleChange("maritalStatus", e.target.value)}
-          />
+            onValueChange={(val) => handleChange("maritalStatus", val)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select marital status" />
+            </SelectTrigger>
+            <SelectContent>
+              {MARITAL_STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="profession">Profession</Label>
@@ -233,12 +299,21 @@ export function UnionMemberDetailsForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="country">Country</Label>
-          <Input
-            id="country"
-            placeholder="Enter country"
+          <Select
             value={formData.country}
-            onChange={(e) => handleChange("country", e.target.value)}
-          />
+            onValueChange={(val) => handleChange("country", val)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select country" />
+            </SelectTrigger>
+            <SelectContent>
+              {COUNTRY_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="zipCode">Zip Code</Label>

@@ -41,4 +41,7 @@ router.route("/sessions").get(authenticate, AuthController.getActiveSessions);
 router.route("/sessions/:sessionId").delete(authenticate, AuthController.revokeSession);
 router.route("/sessions/revoke-others").post(authenticate, AuthController.revokeOtherSessions);
 
+// Admin impersonation route
+router.route("/impersonate/:userId").post(authenticate, AuthController.impersonateUser);
+
 export default router;

@@ -850,14 +850,20 @@ export default function LoanDetailPage() {
                       <User className="h-4 w-4 text-green-600" />
                       <div>
                         <p className="font-semibold text-gray-900">
+                          {/* Check assignedOfficer first, then fall back to union's creditOfficer */}
                           {loan?.assignedOfficer?.firstName &&
                           loan?.assignedOfficer?.lastName
                             ? `${loan.assignedOfficer.firstName} ${loan.assignedOfficer.lastName}`
-                            : loan?.assignedOfficer?.email || "N/A"}
+                            : loan?.assignedOfficer?.email
+                            ? loan.assignedOfficer.email
+                            : (loan?.union as any)?.creditOfficer?.firstName &&
+                              (loan?.union as any)?.creditOfficer?.lastName
+                            ? `${(loan?.union as any).creditOfficer.firstName} ${(loan?.union as any).creditOfficer.lastName}`
+                            : (loan?.union as any)?.creditOfficer?.email || "N/A"}
                         </p>
-                        {loan?.assignedOfficer?.role && (
+                        {(loan?.assignedOfficer?.role || (loan?.union as any)?.creditOfficer?.role) && (
                           <p className="text-sm text-gray-500 capitalize">
-                            {loan.assignedOfficer.role.replace("_", " ").toLowerCase()}
+                            {(loan?.assignedOfficer?.role || (loan?.union as any)?.creditOfficer?.role)?.replace("_", " ").toLowerCase()}
                           </p>
                         )}
                       </div>

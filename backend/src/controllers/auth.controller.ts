@@ -153,4 +153,37 @@ export class AuthController {
       next(error);
     }
   }
+
+  static async impersonateUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { userId } = req.params;
+      const adminId = req.user!.id;
+      const ipAddress = req.ip;
+      const userAgent = req.get("user-agent");
+
+      // Only ADMIN can impersonate users
+      if (req.user!.role !== "ADMIN") {
+        return ApiResponseUtil.error(
+          res,
+          "Only administrators can impersonate users",
+          403
+        );
+      }
+
+      const result = await AuthService.impersonateUser(
+        adminId,
+        userId,
+        ipAddress,
+        userAgent
+      );
+
+      return ApiResponseUtil.success(
+        res,
+        result,
+        `Now logged in as ${result.user.email}`
+      );
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }

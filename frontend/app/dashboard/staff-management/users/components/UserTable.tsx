@@ -15,6 +15,7 @@ import {
   ChevronsRight,
   ChevronLeft,
   ChevronRight,
+  LogIn,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +52,11 @@ interface UserTableProps {
   onEdit: (user: SimpleUser) => void;
   onChangePassword: (user: SimpleUser) => void;
   onDelete: (id: string) => void;
+  onImpersonate?: (user: SimpleUser) => void;
   deletingId: string | null;
+  impersonatingId?: string | null;
+  currentUserRole?: string;
+  currentUserId?: string;
   page: number;
   pageSize: number;
   total: number;
@@ -76,6 +81,10 @@ export function UserTable({
   total,
   onPageChange,
   onPageSizeChange,
+  onImpersonate,
+  impersonatingId,
+  currentUserRole,
+  currentUserId,
 }: UserTableProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -316,6 +325,22 @@ export function UserTable({
                             )}
                             Delete user
                           </button>
+                          {currentUserRole === "ADMIN" &&
+                            user.id !== currentUserId &&
+                            onImpersonate && (
+                              <button
+                                className="w-full flex items-center gap-2 px-2 py-1.5 text-sm text-blue-600 hover:bg-blue-50 border-t border-gray-100 mt-1 pt-2"
+                                onClick={() => onImpersonate(user)}
+                                disabled={impersonatingId === user.id}
+                              >
+                                {impersonatingId === user.id ? (
+                                  <span className="h-4 w-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                                ) : (
+                                  <LogIn className="h-4 w-4" />
+                                )}
+                                Login as user
+                              </button>
+                            )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

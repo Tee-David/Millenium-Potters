@@ -55,7 +55,7 @@ interface Document {
 }
 
 interface DocumentManagementProps {
-  entityType: "customer" | "loan";
+  entityType: "customer" | "loan" | "unionMember";
   entityId: string;
   title?: string;
 }
@@ -81,9 +81,9 @@ export function DocumentManagement({
       try {
         setLoading(true);
         const [docsResponse, typesResponse] = await Promise.all([
-          entityType === "customer"
-            ? documentsApi.getCustomerDocuments(entityId)
-            : documentsApi.getLoanDocuments(entityId),
+          entityType === "loan"
+            ? documentsApi.getLoanDocuments(entityId)
+            : documentsApi.getUnionMemberDocuments(entityId),
           documentTypesApi.getAll(),
         ]);
 
@@ -117,10 +117,10 @@ export function DocumentManagement({
       if (issueDate) formData.append("issueDate", issueDate);
       if (expiryDate) formData.append("expiryDate", expiryDate);
 
-      if (entityType === "customer") {
-        await documentsApi.uploadCustomerDocument(entityId, formData);
-      } else {
+      if (entityType === "loan") {
         await documentsApi.uploadLoanDocument(entityId, formData);
+      } else {
+        await documentsApi.uploadUnionMemberDocument(entityId, formData);
       }
 
       toast.success("Document uploaded successfully");
@@ -134,9 +134,9 @@ export function DocumentManagement({
 
       // Refresh documents list
       const docsResponse =
-        entityType === "customer"
-          ? await documentsApi.getCustomerDocuments(entityId)
-          : await documentsApi.getLoanDocuments(entityId);
+        entityType === "loan"
+          ? await documentsApi.getLoanDocuments(entityId)
+          : await documentsApi.getUnionMemberDocuments(entityId);
       setDocuments(docsResponse.data.data || docsResponse.data);
     } catch (error) {
       toast.error("Failed to upload document");
@@ -153,8 +153,11 @@ export function DocumentManagement({
     notes?: string
   ) => {
     try {
+      // Map entityType to the API type
+      const apiType = entityType === "loan" ? "loan" : "unionMember";
+
       await documentsApi.verifyDocument(documentId, {
-        type: entityType,
+        type: apiType,
         verified,
         verificationNotes: notes,
       });
@@ -165,9 +168,9 @@ export function DocumentManagement({
 
       // Refresh documents list
       const docsResponse =
-        entityType === "customer"
-          ? await documentsApi.getCustomerDocuments(entityId)
-          : await documentsApi.getLoanDocuments(entityId);
+        entityType === "loan"
+          ? await documentsApi.getLoanDocuments(entityId)
+          : await documentsApi.getUnionMemberDocuments(entityId);
       setDocuments(docsResponse.data.data || docsResponse.data);
     } catch (error) {
       toast.error("Failed to update document verification");
@@ -180,14 +183,17 @@ export function DocumentManagement({
     if (!confirm("Are you sure you want to delete this document?")) return;
 
     try {
-      await documentsApi.removeDocument(documentId, entityType);
+      // Map entityType to the API type
+      const apiType = entityType === "loan" ? "loan" : "unionMember";
+
+      await documentsApi.removeDocument(documentId, apiType);
       toast.success("Document deleted successfully");
 
       // Refresh documents list
       const docsResponse =
-        entityType === "customer"
-          ? await documentsApi.getCustomerDocuments(entityId)
-          : await documentsApi.getLoanDocuments(entityId);
+        entityType === "loan"
+          ? await documentsApi.getLoanDocuments(entityId)
+          : await documentsApi.getUnionMemberDocuments(entityId);
       setDocuments(docsResponse.data.data || docsResponse.data);
     } catch (error) {
       toast.error("Failed to delete document");
@@ -352,15 +358,13 @@ export function DocumentManagement({
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() =>
-                            window.open(
-                              `${
-                                process.env.NEXT_PUBLIC_API_URL ||
-                                "https://l-d1.onrender.com/api"
-                              }/documents/serve/${doc.id}`,
-                              "_blank"
-                            )
-                          }
+                          onClick={() => {
+                            // Use the fileUrl directly if it's a full URL (Cloudinary), otherwise build the API URL
+                            const url = doc.fileUrl?.startsWith("http")
+                              ? doc.fileUrl
+                              : `${process.env.NEXT_PUBLIC_API_URL}/documents/serve/${doc.id}`;
+                            window.open(url, "_blank");
+                          }}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>

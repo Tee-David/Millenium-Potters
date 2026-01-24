@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { usersApi } from "@/lib/api";
+import { usersApi, auth } from "@/lib/api";
 import { UserRole } from "@/lib/enum";
 import {
   AccessDenied,
@@ -111,7 +112,8 @@ const toBackendUser = (user: SimpleUser): BackendUser => ({
 });
 
 function UsersPageContent() {
-  const { user: currentUser, isLoading: authLoading } = useAuth();
+  const { user: currentUser, isLoading: authLoading, login } = useAuth();
+  const router = useRouter();
 
   const [users, setUsers] = useState<SimpleUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,6 +149,7 @@ function UsersPageContent() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SimpleUser | null>(null);
   const [supervisors, setSupervisors] = useState<SupervisorOption[]>([]);
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = setTimeout(
@@ -412,6 +415,37 @@ function UsersPageContent() {
     setPage(1);
   };
 
+  const handleImpersonate = async (user: SimpleUser) => {
+    if (currentUser?.role !== "ADMIN") {
+      toast.error("Only administrators can impersonate users");
+      return;
+    }
+
+    try {
+      setImpersonatingId(user.id);
+      const response = await auth.impersonateUser(user.id);
+      const data = response.data?.data ?? response.data;
+
+      if (data?.accessToken && data?.refreshToken) {
+        // Update auth context with new user (this also stores the tokens)
+        await login(data.accessToken, data.refreshToken);
+
+        toast.success(`Now logged in as ${data.user?.email || user.email}`);
+
+        // Redirect to dashboard
+        router.push("/dashboard");
+      } else {
+        toast.error("Failed to impersonate user - invalid response");
+      }
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message || err?.message || "Failed to impersonate user";
+      toast.error(message);
+    } finally {
+      setImpersonatingId(null);
+    }
+  };
+
   const activeUsers = users.filter((user) => user.isActive).length;
   const supervisorCount = users.filter(
     (user) => user.role === UserRole.SUPERVISOR
@@ -526,6 +560,10 @@ function UsersPageContent() {
         total={total}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
+        onImpersonate={handleImpersonate}
+        impersonatingId={impersonatingId}
+        currentUserRole={currentUser?.role}
+        currentUserId={currentUser?.id}
       />
 
       <UserFormModal

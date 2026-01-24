@@ -354,6 +354,9 @@ export const auth = {
   getActiveSessions: () => api.get("/auth/sessions"),
   revokeSession: (sessionId: string) => api.delete(`/auth/sessions/${sessionId}`),
   revokeOtherSessions: () => api.post("/auth/sessions/revoke-others"),
+
+  // Admin impersonation
+  impersonateUser: (userId: string) => api.post(`/auth/impersonate/${userId}`),
 };
 
 // Branches API - matches backend endpoints
