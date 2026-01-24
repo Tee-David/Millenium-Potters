@@ -80,7 +80,14 @@ import {
   Plus,
   Trash2,
   Eye,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  FileSpreadsheet,
 } from "lucide-react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 // Interfaces
 interface OfficerPerformance {
@@ -220,6 +227,14 @@ export default function SupervisorReportsPage() {
     "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "CUSTOM"
   >("MONTHLY");
 
+  // Officer filtering
+  const [selectedOfficer, setSelectedOfficer] = useState<string>("all");
+
+  // Pagination for report history
+  const [reportPage, setReportPage] = useState(1);
+  const [totalReportPages, setTotalReportPages] = useState(1);
+  const reportsPerPage = 10;
+
   // Calculate date range based on selected period
   const getDateRange = useCallback(() => {
     const now = new Date();
@@ -319,9 +334,9 @@ export default function SupervisorReportsPage() {
     }
   }, [isAuthenticated, isSupervisorOrAdmin, getDateRange]);
 
-  // Fetch report sessions
-  const fetchReportSessions = useCallback(async () => {
-    console.log("📋 [SupervisorReports] fetchReportSessions called");
+  // Fetch report sessions with pagination
+  const fetchReportSessions = useCallback(async (page: number = 1) => {
+    console.log("📋 [SupervisorReports] fetchReportSessions called, page:", page);
 
     if (!isAuthenticated || !isSupervisorOrAdmin() || reportsLoading) {
       console.log("📋 [SupervisorReports] Skipping report sessions fetch");
@@ -333,10 +348,13 @@ export default function SupervisorReportsPage() {
 
     try {
       const response = await supervisorReportsApi.getReportSessions({
-        limit: 10,
+        page,
+        limit: reportsPerPage,
       });
       console.log("📋 [SupervisorReports] Report sessions response:", response);
       setReportSessions(response.data.reports || []);
+      setTotalReportPages(response.data.pagination?.totalPages || 1);
+      setReportPage(page);
       console.log(
         "📋 [SupervisorReports] Report sessions set:",
         response.data.reports
@@ -351,7 +369,7 @@ export default function SupervisorReportsPage() {
     } finally {
       setReportsLoading(false);
     }
-  }, [isAuthenticated, isSupervisorOrAdmin]);
+  }, [isAuthenticated, isSupervisorOrAdmin, reportsPerPage]);
 
   // Generate report
   const handleGenerateReport = async () => {
@@ -368,7 +386,7 @@ export default function SupervisorReportsPage() {
       toast.success("Report generated successfully");
       setGenerateDialogOpen(false);
       setReportTitle("");
-      fetchReportSessions();
+      fetchReportSessions(1);
     } catch (error: any) {
       console.error("Error generating report:", error);
       toast.error("Failed to generate report", {
@@ -384,7 +402,7 @@ export default function SupervisorReportsPage() {
     try {
       await supervisorReportsApi.deleteReportSession(id);
       toast.success("Report deleted successfully");
-      fetchReportSessions();
+      fetchReportSessions(reportPage);
     } catch (error: any) {
       console.error("Error deleting report:", error);
       toast.error("Failed to delete report", {
@@ -408,7 +426,7 @@ export default function SupervisorReportsPage() {
         "🔄 [SupervisorReports] All conditions met, fetching data..."
       );
       fetchDashboardData();
-      fetchReportSessions();
+      fetchReportSessions(1);
     } else {
       console.log("🔄 [SupervisorReports] Conditions not met, skipping fetch");
     }
@@ -450,6 +468,121 @@ export default function SupervisorReportsPage() {
   // Format percentage
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
+  };
+
+  // Export dashboard summary to Excel
+  const exportSummaryToExcel = () => {
+    if (!dashboardData) return;
+
+    const { start, end } = getDateRange();
+    const summaryData = [
+      { Metric: "Total Credit Officers", Value: dashboardData.summary.totalOfficers },
+      { Metric: "Total Unions", Value: dashboardData.summary.totalUnions },
+      { Metric: "Total Members", Value: dashboardData.summary.totalMembers },
+      { Metric: "Verified Members", Value: dashboardData.summary.verifiedMembers },
+      { Metric: "Pending Members", Value: dashboardData.summary.pendingMembers },
+      { Metric: "Total Loans", Value: dashboardData.summary.totalLoans },
+      { Metric: "Active Loans", Value: dashboardData.summary.activeLoans },
+      { Metric: "Completed Loans", Value: dashboardData.summary.completedLoans },
+      { Metric: "Defaulted Loans", Value: dashboardData.summary.defaultedLoans },
+      { Metric: "Total Disbursed", Value: formatCurrency(dashboardData.summary.totalDisbursed) },
+      { Metric: "Total Repaid", Value: formatCurrency(dashboardData.summary.totalRepaid) },
+      { Metric: "Total Outstanding", Value: formatCurrency(dashboardData.summary.totalOutstanding) },
+      { Metric: "Collection Rate", Value: formatPercentage(dashboardData.summary.collectionRate) },
+    ];
+
+    const officerData = dashboardData.officerPerformance.map((o) => ({
+      "Officer Name": o.officerName,
+      Email: o.email,
+      Unions: o.totalUnions,
+      Members: o.totalMembers,
+      "Verified Members": o.verifiedMembers,
+      Loans: o.totalLoans,
+      "Active Loans": o.activeLoans,
+      Disbursed: formatCurrency(o.totalDisbursed),
+      Collected: formatCurrency(o.totalRepaid),
+      "Collection Rate": formatPercentage(o.collectionRate),
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.json_to_sheet(summaryData);
+    const ws2 = XLSX.utils.json_to_sheet(officerData);
+    XLSX.utils.book_append_sheet(wb, ws1, "Summary");
+    XLSX.utils.book_append_sheet(wb, ws2, "Officer Performance");
+    XLSX.writeFile(wb, `supervisor-report-${format(start, "yyyy-MM-dd")}-to-${format(end, "yyyy-MM-dd")}.xlsx`);
+    toast.success("Report exported to Excel");
+  };
+
+  // Export dashboard summary to PDF
+  const exportSummaryToPDF = () => {
+    if (!dashboardData) return;
+
+    const { start, end } = getDateRange();
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(18);
+    doc.text("Supervisor Performance Report", 14, 22);
+
+    doc.setFontSize(10);
+    doc.text(`Period: ${format(start, "MMM d, yyyy")} - ${format(end, "MMM d, yyyy")}`, 14, 30);
+    doc.text(`Generated: ${format(new Date(), "MMM d, yyyy HH:mm")}`, 14, 36);
+
+    // Summary section
+    doc.setFontSize(14);
+    doc.text("Summary", 14, 48);
+
+    const summaryData = [
+      ["Credit Officers", dashboardData.summary.totalOfficers.toString()],
+      ["Total Unions", dashboardData.summary.totalUnions.toString()],
+      ["Total Members", `${dashboardData.summary.totalMembers} (${dashboardData.summary.verifiedMembers} verified)`],
+      ["Total Loans", dashboardData.summary.totalLoans.toString()],
+      ["Active Loans", dashboardData.summary.activeLoans.toString()],
+      ["Total Disbursed", formatCurrency(dashboardData.summary.totalDisbursed)],
+      ["Total Collected", formatCurrency(dashboardData.summary.totalRepaid)],
+      ["Outstanding", formatCurrency(dashboardData.summary.totalOutstanding)],
+      ["Collection Rate", formatPercentage(dashboardData.summary.collectionRate)],
+    ];
+
+    autoTable(doc, {
+      head: [["Metric", "Value"]],
+      body: summaryData,
+      startY: 52,
+      theme: "striped",
+    });
+
+    // Officer Performance
+    const finalY = (doc as any).lastAutoTable.finalY || 100;
+    doc.setFontSize(14);
+    doc.text("Officer Performance", 14, finalY + 12);
+
+    const officerData = dashboardData.officerPerformance.map((o) => [
+      o.officerName,
+      o.totalUnions.toString(),
+      o.totalMembers.toString(),
+      o.totalLoans.toString(),
+      formatCurrency(o.totalDisbursed),
+      formatCurrency(o.totalRepaid),
+      formatPercentage(o.collectionRate),
+    ]);
+
+    autoTable(doc, {
+      head: [["Officer", "Unions", "Members", "Loans", "Disbursed", "Collected", "Rate"]],
+      body: officerData,
+      startY: finalY + 16,
+      theme: "striped",
+      styles: { fontSize: 8 },
+    });
+
+    doc.save(`supervisor-report-${format(start, "yyyy-MM-dd")}-to-${format(end, "yyyy-MM-dd")}.pdf`);
+    toast.success("Report exported to PDF");
+  };
+
+  // Get filtered officer performance
+  const getFilteredOfficerPerformance = () => {
+    if (!dashboardData) return [];
+    if (selectedOfficer === "all") return dashboardData.officerPerformance;
+    return dashboardData.officerPerformance.filter((o) => o.officerId === selectedOfficer);
   };
 
   // Auth check
@@ -528,6 +661,65 @@ export default function SupervisorReportsPage() {
                 className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
               />
             </Button>
+
+            {/* Officer Filter */}
+            {dashboardData && dashboardData.officerPerformance.length > 0 && (
+              <Select value={selectedOfficer} onValueChange={setSelectedOfficer}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Filter by officer" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Officers</SelectItem>
+                  {dashboardData.officerPerformance.map((officer) => (
+                    <SelectItem key={officer.officerId} value={officer.officerId}>
+                      {officer.officerName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* Export Dropdown */}
+            {dashboardData && (
+              <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportSummaryToExcel}
+                  className="hidden sm:flex"
+                >
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Excel
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportSummaryToPDF}
+                  className="hidden sm:flex"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  PDF
+                </Button>
+                {/* Mobile export buttons */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={exportSummaryToExcel}
+                  className="sm:hidden"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={exportSummaryToPDF}
+                  className="sm:hidden"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Custom Date Range */}
@@ -935,7 +1127,7 @@ export default function SupervisorReportsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {dashboardData.officerPerformance.length === 0 ? (
+                        {getFilteredOfficerPerformance().length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={8} className="text-center py-8">
                               <p className="text-muted-foreground">
@@ -944,7 +1136,7 @@ export default function SupervisorReportsPage() {
                             </TableCell>
                           </TableRow>
                         ) : (
-                          dashboardData.officerPerformance.map((officer) => (
+                          getFilteredOfficerPerformance().map((officer) => (
                             <TableRow key={officer.officerId}>
                               <TableCell className="p-2 sm:p-4">
                                 <div>
@@ -1045,7 +1237,7 @@ export default function SupervisorReportsPage() {
               </Card>
 
               {/* Officer Performance Chart */}
-              {dashboardData.officerPerformance.length > 0 && (
+              {getFilteredOfficerPerformance().length > 0 && (
                 <Card>
                   <CardHeader className="p-4 sm:p-6">
                     <CardTitle className="text-base sm:text-lg">
@@ -1058,7 +1250,7 @@ export default function SupervisorReportsPage() {
                   <CardContent className="h-[280px] sm:h-[350px] p-2 sm:p-6 pt-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={dashboardData.officerPerformance}
+                        data={getFilteredOfficerPerformance()}
                         margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
@@ -1219,6 +1411,7 @@ export default function SupervisorReportsPage() {
                       </Button>
                     </div>
                   ) : (
+                    <>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1316,6 +1509,36 @@ export default function SupervisorReportsPage() {
                         ))}
                       </TableBody>
                     </Table>
+
+                    {/* Pagination Controls */}
+                    {totalReportPages > 1 && (
+                      <div className="flex items-center justify-between pt-4 border-t">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Page {reportPage} of {totalReportPages}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fetchReportSessions(reportPage - 1)}
+                            disabled={reportPage <= 1 || reportsLoading}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            <span className="hidden sm:inline ml-1">Previous</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fetchReportSessions(reportPage + 1)}
+                            disabled={reportPage >= totalReportPages || reportsLoading}
+                          >
+                            <span className="hidden sm:inline mr-1">Next</span>
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    </>
                   )}
                 </CardContent>
               </Card>
