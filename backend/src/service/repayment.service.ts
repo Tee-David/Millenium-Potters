@@ -103,8 +103,8 @@ export class RepaymentService {
     // Recalculate remaining schedules to redistribute the remaining balance
     await this.recalculateRemainingSchedules(data.loanId);
 
-    // Check if loan is fully paid
-    await this.checkLoanCompletion(data.loanId);
+    // Check if loan is fully paid or overdue
+    await this.updateLoanStatus(data.loanId);
 
     return repayment;
   }
@@ -187,77 +187,129 @@ export class RepaymentService {
   }
 
   /**
+ * Recalculate remaining schedule items after a payment
+ * Due per period = (loan principal - total repaid) / remaining periods
+ * FIXED: Uses loan.principalAmount - sum of repayments, not schedule sums
+ * This prevents circular shrinking of schedule totals
+ */
+  /**
    * Recalculate remaining schedule items after a payment
-   * Due per period = remaining total / remaining periods
+   * FIXED: Preserves original schedule amounts and fills them sequentially
+   * This ensures future items retain their correct installment amount (e.g. 600)
+   * instead of getting weird fractional amounts from equal redistribution.
    */
   static async recalculateRemainingSchedules(loanId: string) {
-    // Get all unpaid schedule items (PENDING, PARTIAL, OVERDUE)
-    const unpaidItems = await prisma.repaymentScheduleItem.findMany({
-      where: {
-        loanId,
-        status: {
-          in: [ScheduleStatus.PENDING, ScheduleStatus.PARTIAL, ScheduleStatus.OVERDUE],
-        },
-        deletedAt: null,
-      },
-      orderBy: { sequence: "asc" },
+    const loan = await prisma.loan.findUnique({
+      where: { id: loanId },
+      include: {
+        repayments: { where: { deletedAt: null } },
+        scheduleItems: {
+          where: { deletedAt: null },
+          orderBy: { sequence: 'asc' }
+        }
+      }
     });
 
-    if (unpaidItems.length === 0) {
-      console.log("No unpaid items to recalculate");
-      return;
-    }
+    if (!loan) return;
 
-    // Calculate remaining principal across all unpaid items
-    let remainingPrincipal = new Decimal(0);
-    for (const item of unpaidItems) {
-      // For each item, remaining = principalDue - (paidAmount applied to principal)
-      // Since we don't have interest, paidAmount goes to principal
-      const itemRemaining = item.principalDue.minus(item.paidAmount);
-      if (itemRemaining.gt(0)) {
-        remainingPrincipal = remainingPrincipal.plus(itemRemaining);
+    // 1. Calculate Total Repaid
+    let remainingPaid = loan.repayments.reduce(
+      (sum, r) => sum.plus(r.amount),
+      new Decimal(0)
+    ).toNumber();
+
+    console.log(`Recalculating ${loan.loanNumber}: Total Repaid = ${remainingPaid}`);
+
+    // 2. Iterate through ALL schedule items and fill them sequentially
+    // We don't change the PrincipalDue/TotalDue unless it was wrong (mismatch with sum)
+    // But for now, we assume fixed_all_schedules.js has restored correct TotalDue values.
+    // We just update PaidAmount and Status based on the waterfall.
+
+    for (const item of loan.scheduleItems) {
+      const itemDue = item.totalDue.toNumber();
+      let thisPaid = 0;
+
+      if (remainingPaid >= itemDue) {
+        thisPaid = itemDue;
+        remainingPaid -= itemDue;
+      } else {
+        thisPaid = remainingPaid;
+        remainingPaid = 0;
+      }
+
+      // Fix float precision
+      thisPaid = Math.round(thisPaid * 100) / 100;
+
+      let newStatus = ScheduleStatus.PENDING;
+      if (Math.abs(thisPaid - itemDue) < 0.01) newStatus = ScheduleStatus.PAID;
+      else if (thisPaid > 0) newStatus = ScheduleStatus.PARTIAL;
+      else if (new Date() > item.dueDate) newStatus = ScheduleStatus.OVERDUE;
+
+      // Only update if changed
+      if (
+        item.paidAmount.toNumber() !== thisPaid ||
+        item.status !== newStatus
+      ) {
+        await prisma.repaymentScheduleItem.update({
+          where: { id: item.id },
+          data: {
+            paidAmount: new Decimal(thisPaid),
+            status: newStatus
+          }
+        });
       }
     }
-
-    console.log(`Recalculating schedules: ${remainingPrincipal.toString()} remaining across ${unpaidItems.length} items`);
-
-    // Redistribute remaining principal equally across remaining periods
-    const newPrincipalPerPeriod = remainingPrincipal.div(unpaidItems.length);
-
-    // Update each unpaid item with the new amount
-    for (const item of unpaidItems) {
-      // Keep the paid amount, just update what's still due
-      const alreadyPaid = item.paidAmount;
-      const newTotalDue = newPrincipalPerPeriod.plus(alreadyPaid);
-
-      await prisma.repaymentScheduleItem.update({
-        where: { id: item.id },
-        data: {
-          principalDue: newPrincipalPerPeriod,
-          totalDue: newPrincipalPerPeriod, // No interest, so totalDue = principalDue
-        },
-      });
-    }
-
-    console.log(`Updated ${unpaidItems.length} schedule items with new amount: ${newPrincipalPerPeriod.toString()} per period`);
+    console.log(`Recalculation complete for ${loan.loanNumber}`);
   }
 
-  static async checkLoanCompletion(loanId: string) {
-    const pendingItems = await prisma.repaymentScheduleItem.count({
-      where: {
-        loanId,
-        status: { notIn: [ScheduleStatus.PAID] },
-        deletedAt: null,
-      },
+  /**
+   * Update loan status based on repayments and dates
+   * Handles transitions: APPROVED -> ACTIVE -> COMPLETED / OVERDUE
+   */
+  static async updateLoanStatus(loanId: string) {
+    const loan = await prisma.loan.findUnique({
+      where: { id: loanId },
+      include: {
+        repayments: { where: { deletedAt: null } }
+      }
     });
 
-    if (pendingItems === 0) {
+    if (!loan) return;
+
+    const totalRepaid = loan.repayments.reduce(
+      (sum, r) => sum.add(r.amount),
+      new Decimal(0)
+    );
+
+    const principal = new Decimal(loan.principalAmount);
+    const outstanding = principal.minus(totalRepaid);
+
+    let newStatus = loan.status;
+    const today = new Date();
+    const isPastDue = loan.endDate && today > loan.endDate;
+
+    // Determine correct status
+    if (outstanding.lte(0)) {
+      newStatus = "COMPLETED";
+    } else if (totalRepaid.gt(0)) {
+      // Has made payments but not finished
+      newStatus = isPastDue ? "DEFAULTED" : "ACTIVE";
+      // Note: Using DEFAULTED for consistency with enum, though UI might show Overdue
+    } else if (loan.status === "APPROVED" || loan.status === "ACTIVE") {
+      // Approved but no payments yet
+      newStatus = "APPROVED";
+    }
+
+    // Only update if status changed or just to be safe about closedAt
+    if (newStatus !== loan.status || (newStatus === "COMPLETED" && !loan.closedAt)) {
+      console.log(`Updating loan ${loan.loanNumber} status: ${loan.status} -> ${newStatus}`);
+
       await prisma.loan.update({
         where: { id: loanId },
         data: {
-          status: "COMPLETED",
-          closedAt: new Date(),
-        },
+          status: newStatus as any,
+          closedAt: newStatus === "COMPLETED" ? new Date() : null,
+        }
       });
     }
   }
@@ -619,8 +671,8 @@ export class RepaymentService {
         const newStatus = newPaidAmount.lte(0)
           ? ScheduleStatus.PENDING
           : newPaidAmount.lt(scheduleItem.totalDue)
-          ? ScheduleStatus.PARTIAL
-          : ScheduleStatus.PAID;
+            ? ScheduleStatus.PARTIAL
+            : ScheduleStatus.PAID;
 
         await prisma.repaymentScheduleItem.update({
           where: { id: allocation.scheduleItemId },
@@ -689,6 +741,9 @@ export class RepaymentService {
 
     const where: any = {
       deletedAt: null,
+      // Exclude PAID schedules by default - they belong on Repayments page
+      // Only show schedules that still need payment (PENDING, PARTIAL, OVERDUE)
+      status: { notIn: ['PAID'] },
       // Filter by loan status - only show schedules for approved/active loans
       loan: {
         status: { in: allowedLoanStatuses },
@@ -807,11 +862,11 @@ export class RepaymentService {
                     name: true,
                   },
                 },
-                // Include all schedule items to calculate totalPaid for the loan
-                scheduleItems: {
+                // Include actual repayments to calculate totalPaid correctly
+                repayments: {
                   where: { deletedAt: null },
                   select: {
-                    paidAmount: true,
+                    amount: true,
                   },
                 },
               },
@@ -828,10 +883,12 @@ export class RepaymentService {
         `Found ${schedules.length} repayment schedules out of ${total} total`
       );
 
-      // Transform schedules to include totalPaid calculated from all schedule items
+      // Transform schedules to include totalPaid calculated from actual repayments
       const schedulesWithTotalPaid = schedules.map((schedule: any) => {
-        const totalPaid = schedule.loan.scheduleItems.reduce(
-          (sum: number, item: any) => sum + parseFloat(item.paidAmount || 0),
+        // Calculate totalPaid from Repayments table (reliable source of truth)
+        // instead of schedule items (which had corruption issues)
+        const totalPaid = schedule.loan.repayments.reduce(
+          (sum: number, item: any) => sum + parseFloat(item.amount || 0),
           0
         );
 
@@ -845,8 +902,8 @@ export class RepaymentService {
             ...schedule.loan,
             totalPaid,
             totalOutstanding,
-            // Remove scheduleItems from response to keep it clean
-            scheduleItems: undefined,
+            // Remove repayments from response to keep it clean
+            repayments: undefined,
           },
         };
       });

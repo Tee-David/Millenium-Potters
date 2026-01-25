@@ -72,12 +72,12 @@ interface RepaymentSchedule {
   totalDue: string | number;
   paidAmount: string | number;
   status:
-    | "PENDING"
-    | "PARTIAL"
-    | "PAID"
-    | "OVERDUE"
-    | "UNDER_REPAYMENT"
-    | "FULLY_PAID";
+  | "PENDING"
+  | "PARTIAL"
+  | "PAID"
+  | "OVERDUE"
+  | "UNDER_REPAYMENT"
+  | "FULLY_PAID";
   closedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -341,7 +341,7 @@ export default function RepaymentSchedulePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [itemsPerPage, setItemsPerPage] = useState(200); // Increased from 50 to fetch all schedules
 
   // Column visibility
   const [visibleColumns, setVisibleColumns] = useState({
@@ -482,10 +482,9 @@ export default function RepaymentSchedulePage() {
           .substr(2, 9)}`,
         notes:
           paymentForm.notes ||
-          `Payment via ${paymentForm.method} - ${
-            paymentModal.paymentType === "due_today"
-              ? "Due Today"
-              : "Custom Amount"
+          `Payment via ${paymentForm.method} - ${paymentModal.paymentType === "due_today"
+            ? "Due Today"
+            : "Custom Amount"
           }`,
         // Include schedule item ID to ensure payment is allocated to this specific schedule
         scheduleItemId: paymentModal.loanData.id,
@@ -559,13 +558,13 @@ export default function RepaymentSchedulePage() {
 
         const officersData = officersResponse.data.success
           ? officersResponse.data.data?.users ||
-            officersResponse.data.data ||
-            []
+          officersResponse.data.data ||
+          []
           : officersResponse.data.data?.users ||
-            officersResponse.data.users ||
-            officersResponse.data.data ||
-            officersResponse.data ||
-            [];
+          officersResponse.data.users ||
+          officersResponse.data.data ||
+          officersResponse.data ||
+          [];
 
         const unionsData = unionsResponse.data;
         const unions = unionsData.success
@@ -575,10 +574,10 @@ export default function RepaymentSchedulePage() {
         const loansData = loansResponse.data.success
           ? loansResponse.data.data || []
           : loansResponse.data.data?.loans ||
-            loansResponse.data.loans ||
-            loansResponse.data.data ||
-            loansResponse.data ||
-            [];
+          loansResponse.data.loans ||
+          loansResponse.data.data ||
+          loansResponse.data ||
+          [];
 
         // Filter to only show approved loans
         const approvedLoans = loansData.filter(
@@ -670,45 +669,45 @@ export default function RepaymentSchedulePage() {
       // Transform data to match expected format if needed
       const transformedData = Array.isArray(rawSchedulesData)
         ? rawSchedulesData.map((item: any) => ({
-            ...item,
-            // Ensure numeric fields are numbers
-            principalDue:
-              typeof item.principalDue === "string"
-                ? parseFloat(item.principalDue)
-                : item.principalDue,
-            interestDue:
-              typeof item.interestDue === "string"
-                ? parseFloat(item.interestDue)
-                : item.interestDue,
-            totalDue:
-              typeof item.totalDue === "string"
-                ? parseFloat(item.totalDue)
-                : item.totalDue,
-            paidAmount:
-              typeof item.paidAmount === "string"
-                ? parseFloat(item.paidAmount)
-                : item.paidAmount,
-            // Ensure loan data is properly formatted
-            loan: {
-              ...item.loan,
-              principalAmount:
-                typeof item.loan?.principalAmount === "string"
-                  ? parseFloat(item.loan.principalAmount)
-                  : item.loan?.principalAmount,
-              termCount:
-                typeof item.loan?.termCount === "string"
-                  ? parseInt(item.loan.termCount)
-                  : item.loan?.termCount,
-              processingFeeAmount:
-                typeof item.loan?.processingFeeAmount === "string"
-                  ? parseFloat(item.loan.processingFeeAmount)
-                  : item.loan?.processingFeeAmount,
-              penaltyFeePerDayAmount:
-                typeof item.loan?.penaltyFeePerDayAmount === "string"
-                  ? parseFloat(item.loan.penaltyFeePerDayAmount)
-                  : item.loan?.penaltyFeePerDayAmount,
-            },
-          }))
+          ...item,
+          // Ensure numeric fields are numbers
+          principalDue:
+            typeof item.principalDue === "string"
+              ? parseFloat(item.principalDue)
+              : item.principalDue,
+          interestDue:
+            typeof item.interestDue === "string"
+              ? parseFloat(item.interestDue)
+              : item.interestDue,
+          totalDue:
+            typeof item.totalDue === "string"
+              ? parseFloat(item.totalDue)
+              : item.totalDue,
+          paidAmount:
+            typeof item.paidAmount === "string"
+              ? parseFloat(item.paidAmount)
+              : item.paidAmount,
+          // Ensure loan data is properly formatted
+          loan: {
+            ...item.loan,
+            principalAmount:
+              typeof item.loan?.principalAmount === "string"
+                ? parseFloat(item.loan.principalAmount)
+                : item.loan?.principalAmount,
+            termCount:
+              typeof item.loan?.termCount === "string"
+                ? parseInt(item.loan.termCount)
+                : item.loan?.termCount,
+            processingFeeAmount:
+              typeof item.loan?.processingFeeAmount === "string"
+                ? parseFloat(item.loan.processingFeeAmount)
+                : item.loan?.processingFeeAmount,
+            penaltyFeePerDayAmount:
+              typeof item.loan?.penaltyFeePerDayAmount === "string"
+                ? parseFloat(item.loan.penaltyFeePerDayAmount)
+                : item.loan?.penaltyFeePerDayAmount,
+          },
+        }))
         : [];
 
       console.log("🔍 Transformed data:", transformedData);
@@ -717,27 +716,16 @@ export default function RepaymentSchedulePage() {
         apiResponse.pagination?.total || 0
       );
 
-      // Exclude completed/closed loans and paid/fully paid schedules from the dataset
-      const baseData = transformedData.filter((item: any) => {
-        const loanStatus = (item.loan?.status || "").toUpperCase();
-        const scheduleStatus = (item.status || "").toUpperCase();
-        const loanClosed = ["COMPLETED", "CLOSED", "FULLY_PAID"].includes(
-          loanStatus
-        );
-        const schedulePaid = ["PAID", "FULLY_PAID"].includes(scheduleStatus);
-        return !loanClosed && !schedulePaid;
-      });
+      // Backend now pre-filters PAID schedules - use data directly
+      // No need for client-side filtering (which was breaking pagination)
+      console.log("📊 Schedule count from API:", transformedData.length);
 
-      console.log(
-        "💾 Setting data state with filtered base data (no PAID/closed)..."
-      );
-      setData(baseData);
+      setData(transformedData);
 
-      // Use API pagination totals when available; fallback to client count
+      // Use API pagination totals for accurate pagination
       const paginationData = apiResponse.pagination || {};
-      const totalCount = Array.isArray(baseData) ? baseData.length : 0;
-      setTotalItems(totalCount);
-      setTotalPages(Math.ceil(totalCount / itemsPerPage));
+      setTotalItems(paginationData.total || transformedData.length);
+      setTotalPages(paginationData.totalPages || Math.ceil((paginationData.total || transformedData.length) / itemsPerPage));
     } catch (error: any) {
       console.error("Failed to load repayment schedules:", error);
       console.error("Error response:", error.response);
@@ -884,8 +872,7 @@ export default function RepaymentSchedulePage() {
       const errorCount = result.errorCount || 0;
 
       toast.success(
-        `Successfully generated ${generatedCount} missing schedules out of ${totalLoans} loans${
-          errorCount > 0 ? ` (${errorCount} failed)` : ""
+        `Successfully generated ${generatedCount} missing schedules out of ${totalLoans} loans${errorCount > 0 ? ` (${errorCount} failed)` : ""
         }`,
         { duration: 5000 }
       );
@@ -937,8 +924,7 @@ export default function RepaymentSchedulePage() {
       today.setHours(0, 0, 0, 0); // Start of today
 
       console.log(
-        `📅 Applying today-only filter. Today: ${
-          today.toISOString().split("T")[0]
+        `📅 Applying today-only filter. Today: ${today.toISOString().split("T")[0]
         }`
       );
 
@@ -957,10 +943,8 @@ export default function RepaymentSchedulePage() {
 
         if (shouldInclude) {
           console.log(
-            `✅ INCLUDED: ${item.loan?.loanNumber} (seq: ${
-              item.sequence
-            }) due ${dueDate.toISOString().split("T")[0]} - status: ${
-              item.status
+            `✅ INCLUDED: ${item.loan?.loanNumber} (seq: ${item.sequence
+            }) due ${dueDate.toISOString().split("T")[0]} - status: ${item.status
             }`
           );
         }
@@ -992,27 +976,58 @@ export default function RepaymentSchedulePage() {
 
     // Apply credit officer filter (client-side)
     if (selectedCreditOfficer) {
+      console.log(`🎯 Applying credit officer filter: ${selectedCreditOfficer}`);
+      const beforeOfficerFilter = filtered.length;
       filtered = filtered.filter(
         (item) => item.loan?.assignedOfficer?.id === selectedCreditOfficer
       );
+      console.log(`📊 Credit officer filter: ${beforeOfficerFilter} → ${filtered.length} items`);
+
+      if (filtered.length === 0) {
+        console.warn("⚠️ CREDIT OFFICER FILTER removed ALL items! This may be the problem.");
+      }
+    } else {
+      console.log("✅ No credit officer filter - showing all officers' schedules");
     }
 
     // Apply union filter (client-side)
     if (selectedUnion) {
+      console.log(`🎯 Applying union filter: ${selectedUnion}`);
+      const beforeUnionFilter = filtered.length;
       filtered = filtered.filter(
         (item) => item.loan?.union?.id === selectedUnion
       );
+      console.log(`📊 Union filter: ${beforeUnionFilter} → ${filtered.length} items`);
+
+      if (filtered.length === 0) {
+        console.warn("⚠️ UNION FILTER removed ALL items! This may be the problem.");
+      }
+    } else {
+      console.log("✅ No union filter - showing all unions' schedules");
     }
 
-    // Apply status filter (limit to PENDING, PARTIAL, UNDER_REPAYMENT)
+    // Apply status filter - by default show only unpaid schedules
     if (statusFilter) {
+      console.log(`🎯 Applying user-selected status filter: ${statusFilter}`);
+      const beforeStatusFilter = filtered.length;
       filtered = filtered.filter((item) => item.status === statusFilter);
+      console.log(`📊 Status filter: ${beforeStatusFilter} → ${filtered.length} items`);
     } else {
-      filtered = filtered.filter((item) =>
-        ["PENDING", "PARTIAL", "UNDER_REPAYMENT"].includes(
-          (item.status || "").toUpperCase()
-        )
-      );
+      // Default: show only unpaid schedules (PENDING, PARTIAL, OVERDUE, UNDER_REPAYMENT)
+      // PAID schedules should be on the Repayments page
+      console.log("🎯 Applying default filter: showing only UNPAID schedules");
+      const beforeDefaultFilter = filtered.length;
+      filtered = filtered.filter((item) => {
+        const status = (item.status || "").toUpperCase();
+        const shouldInclude = ["PENDING", "PARTIAL", "UNDER_REPAYMENT", "OVERDUE"].includes(status);
+
+        if (item.loan?.loanNumber?.startsWith("LN0000000")) {
+          console.log(`  ${item.loan.loanNumber} (Seq ${item.sequence}): status=${item.status}, include=${shouldInclude}`);
+        }
+
+        return shouldInclude;
+      });
+      console.log(`📊 Default status filter: ${beforeDefaultFilter} → ${filtered.length} items (excluded PAID)`);
     }
 
     // Apply date range filter (only if not using today-only mode)
@@ -1063,9 +1078,8 @@ export default function RepaymentSchedulePage() {
     const worksheet = XLSX.utils.json_to_sheet(
       data.map((item) => ({
         "Loan Number": item.loan?.loanNumber || "N/A",
-        "Union Member": `${item.loan?.unionMember?.firstName || ""} ${
-          item.loan?.unionMember?.lastName || ""
-        }`,
+        "Union Member": `${item.loan?.unionMember?.firstName || ""} ${item.loan?.unionMember?.lastName || ""
+          }`,
         Code: item.loan?.unionMember?.code || "N/A",
         Union: item.loan?.union?.name || "N/A",
         "Due Date": formatDate(item.dueDate),
@@ -1087,8 +1101,7 @@ export default function RepaymentSchedulePage() {
 
     const tableData = data.map((item) => [
       item.loan?.loanNumber || "N/A",
-      `${item.loan?.unionMember?.firstName || ""} ${
-        item.loan?.unionMember?.lastName || ""
+      `${item.loan?.unionMember?.firstName || ""} ${item.loan?.unionMember?.lastName || ""
       }`,
       item.loan?.unionMember?.code || "N/A",
       formatDate(item.dueDate),
@@ -1129,8 +1142,7 @@ export default function RepaymentSchedulePage() {
       ],
       ...data.map((item) => [
         item.loan?.loanNumber || "N/A",
-        `${item.loan?.unionMember?.firstName || ""} ${
-          item.loan?.unionMember?.lastName || ""
+        `${item.loan?.unionMember?.firstName || ""} ${item.loan?.unionMember?.lastName || ""
         }`,
         item.loan?.unionMember?.code || "N/A",
         formatDate(item.dueDate),
@@ -1266,8 +1278,9 @@ export default function RepaymentSchedulePage() {
               </p>
               <p className="text-2xl sm:text-3xl font-bold mt-1">
                 {
-                  filteredData.filter((item) => item.status === "PENDING")
-                    .length
+                  filteredData.filter((item) =>
+                    item.status === "PENDING" || item.status === "PARTIAL"
+                  ).length
                 }
               </p>
             </div>
@@ -1461,11 +1474,10 @@ export default function RepaymentSchedulePage() {
                   setShowTodayOnly(false);
                   setDateRange(undefined);
                 }}
-                className={`text-xs ${
-                  filterMode === "all"
-                    ? "bg-gray-700 hover:bg-gray-800 text-white"
-                    : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
-                }`}
+                className={`text-xs ${filterMode === "all"
+                  ? "bg-gray-700 hover:bg-gray-800 text-white"
+                  : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
+                  }`}
               >
                 <Eye className="h-3 w-3 mr-1" />
                 All
@@ -1478,11 +1490,10 @@ export default function RepaymentSchedulePage() {
                   setShowTodayOnly(true);
                   setDateRange(undefined);
                 }}
-                className={`text-xs ${
-                  filterMode === "today"
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                    : "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-700"
-                }`}
+                className={`text-xs ${filterMode === "today"
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : "bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-700"
+                  }`}
               >
                 <Calendar className="h-3 w-3 mr-1" />
                 Today
@@ -1494,11 +1505,10 @@ export default function RepaymentSchedulePage() {
                   setFilterMode("single");
                   setShowTodayOnly(false);
                 }}
-                className={`text-xs ${
-                  filterMode === "single"
-                    ? "bg-blue-600 hover:bg-blue-700 text-white"
-                    : "bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
-                }`}
+                className={`text-xs ${filterMode === "single"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                  }`}
               >
                 <Calendar className="h-3 w-3 mr-1" />
                 Single Day
@@ -1510,11 +1520,10 @@ export default function RepaymentSchedulePage() {
                   setFilterMode("range");
                   setShowTodayOnly(false);
                 }}
-                className={`text-xs ${
-                  filterMode === "range"
-                    ? "bg-purple-600 hover:bg-purple-700 text-white"
-                    : "bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700"
-                }`}
+                className={`text-xs ${filterMode === "range"
+                  ? "bg-purple-600 hover:bg-purple-700 text-white"
+                  : "bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700"
+                  }`}
               >
                 <Filter className="h-3 w-3 mr-1" />
                 Date Range
@@ -1638,16 +1647,15 @@ export default function RepaymentSchedulePage() {
                     <Button
                       variant="outline"
                       disabled={filterMode === "today" || filterMode === "all"}
-                      className={`w-full justify-start text-left font-normal h-12 px-4 ${
-                        filterMode === "today" || filterMode === "all"
-                          ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                          : "border-gray-300 hover:border-purple-500 focus:border-purple-500"
-                      }`}
+                      className={`w-full justify-start text-left font-normal h-12 px-4 ${filterMode === "today" || filterMode === "all"
+                        ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                        : "border-gray-300 hover:border-purple-500 focus:border-purple-500"
+                        }`}
                     >
                       <Calendar className="mr-3 h-5 w-5 text-gray-400" />
                       {filterMode === "range" &&
-                      dateRange?.from &&
-                      dateRange?.to ? (
+                        dateRange?.from &&
+                        dateRange?.to ? (
                         <span className="text-sm">
                           {format(dateRange.from, "MMM dd")} -{" "}
                           {format(dateRange.to, "MMM dd")}
@@ -1661,10 +1669,10 @@ export default function RepaymentSchedulePage() {
                           {filterMode === "all"
                             ? "All schedules mode"
                             : filterMode === "today"
-                            ? "Today Only mode active"
-                            : filterMode === "single"
-                            ? "Select a date"
-                            : "Select date range"}
+                              ? "Today Only mode active"
+                              : filterMode === "single"
+                                ? "Select a date"
+                                : "Select date range"}
                         </span>
                       )}
                     </Button>
@@ -1810,15 +1818,15 @@ export default function RepaymentSchedulePage() {
             {filterMode === "all"
               ? "Showing all repayment schedules"
               : filterMode === "today"
-              ? "Showing repayment schedules due today"
-              : filterMode === "single" && singleDate
-              ? `Showing schedules for ${format(singleDate, "MMM dd, yyyy")}`
-              : filterMode === "range" && dateRange?.from && dateRange?.to
-              ? `Showing schedules from ${format(
-                  dateRange.from,
-                  "MMM dd"
-                )} to ${format(dateRange.to, "MMM dd")}`
-              : "Active loan repayment schedules and payment management"}
+                ? "Showing repayment schedules due today"
+                : filterMode === "single" && singleDate
+                  ? `Showing schedules for ${format(singleDate, "MMM dd, yyyy")}`
+                  : filterMode === "range" && dateRange?.from && dateRange?.to
+                    ? `Showing schedules from ${format(
+                      dateRange.from,
+                      "MMM dd"
+                    )} to ${format(dateRange.to, "MMM dd")}`
+                    : "Active loan repayment schedules and payment management"}
           </p>
         </CardHeader>
         <CardContent className="px-6 sm:px-8 pb-6 sm:pb-8">
@@ -2207,7 +2215,7 @@ export default function RepaymentSchedulePage() {
                             Math.max(
                               0,
                               safeParseNumber(paymentModal.loanData.totalDue) -
-                                safeParseNumber(paymentModal.loanData.paidAmount)
+                              safeParseNumber(paymentModal.loanData.paidAmount)
                             )
                           )}
                         </p>
@@ -2233,11 +2241,10 @@ export default function RepaymentSchedulePage() {
                               amount: e.target.value,
                             })
                           }
-                          className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                            paymentErrors.amount
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          }`}
+                          className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${paymentErrors.amount
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            }`}
                           placeholder="Enter amount"
                           step="0.01"
                           min="0"
@@ -2262,11 +2269,10 @@ export default function RepaymentSchedulePage() {
                             method: e.target.value,
                           })
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                          paymentErrors.method
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 ${paymentErrors.method
+                          ? "border-red-500"
+                          : "border-gray-300"
+                          }`}
                       >
                         <option value="cash">Cash</option>
                         <option value="transfer">Bank Transfer</option>
