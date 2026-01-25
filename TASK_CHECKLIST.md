@@ -1,69 +1,91 @@
-# Millenium Fixes - Task Checklist
+# Millenium Potters LMS - Task Checklist
 
-Progress tracking for fixes from `Millenium fixes.txt`
+Last updated: January 2026
 
-## Completed
+## Completed Tasks
 
-- [x] **Fix #1**: Loan Editing Permissions - Admin/credit officer can only edit loans BEFORE approval *(already implemented in loan.service.ts)*
-- [x] **Fix #2**: Audit Logs - Comprehensive CRUD logging already implemented with middleware *(audit.middleware.ts, auditLog.routes.ts, audit-logs.tsx)*
-- [x] **Fix #3**: Double Confirmation Modal - Fixed with AlertDialog for proper two-step approval/rejection *(loan/[id]/page.tsx)*
-- [x] **Fix #4**: Member Verification Toggle - Admin can toggle member verified status *(TEST_PLAN shows PASSED)*
-- [x] **Fix #6**: URL Visibility - Replaced Link with router.push() in customer-list.tsx, loan pages *(done)*
-- [x] **Fix #7**: Session Invalidation - When admin reassigns unions, affected logged-in users refresh *(implemented in union.service.ts)*
-- [x] **Fix #8**: Union Assignment Cascade - When union reassigned, all members transfer to new credit officer *(implemented in union.service.ts)*
-- [x] **Fix #9**: Member Reassignment - Added double confirmation modal with AlertDialog *(union-assignment/page.tsx)*
-- [x] **Fix #10**: Form Dropdowns - Fixed dropdowns appearing cut off *(select.tsx updated with z-[9999])*
-- [x] **Fix #11**: Date of Birth Validation - Validate min 16 years if provided *(customer.validator.ts has minAgeValidator)*
-- [x] **Fix #12**: Loan Term Validation - Added min/max term validation in loan create/edit forms *(create/page.tsx, edit/page.tsx)*
-- [x] **Fix Supervisor Validation Bug** - Fixed union.service.ts line 56 comparing wrong IDs
-- [x] **Fix #13 Part 1**: Remove current password requirement from password change *(done: password-settings-enhanced.tsx + settings.service.ts)*
-- [x] **Fix #13 Part 3**: Remove hardcoded green background in loan management *(replaced with slate/blue gradients in loan pages)*
-- [x] **Fix #14**: Assignment Page - Renamed to "Assignment" with tabs for union assignment and member assignment *(done: union-assignment/page.tsx + app-sidebar.tsx)*
-- [x] **NEW**: Bulk Assignment - Added bulk select/assign for unions and members *(union-assignment/page.tsx)*
+### Authentication & Session
+- [x] Fix "remember me" login - stores access token, refresh token, and user data
+- [x] Fix impersonation to show correct role-based dashboard
 
-## Partially Done
+### User Management
+- [x] Bulk delete for users with checkbox selection
+- [x] Single confirmation dialog with dependency warnings
+- [x] Show dependency info before deletion (unions, members linked)
 
-- [~] **Fix #13 Part 2**: Fix theme/branding colors not applying *(needs ThemeProvider to load oklch colors on startup - complex)*
-- [~] **Fix #15**: UI Overhaul - Added dark: variants to dashboard and loan pages. 182 occurrences across 29 files need full audit.
+### Loan Management
+- [x] Fix repayment schedules not showing for approved/active loans
+- [x] Fix loan routes order (static routes before dynamic :id routes)
+- [x] Fix loan card icons (add missing color definitions)
+- [x] Fix admin loan edit permissions (can edit after approval)
+- [x] Add regenerate schedule endpoint for individual loans
 
-## Completed (This Session)
+### UI/UX Improvements
+- [x] Add user name display in header
+- [x] Remove desktop hamburger icon (keep for mobile)
+- [x] Add footer attribution (WDC Solutions)
+- [x] Fix repayment customer display showing N/A
 
-- [x] **Fix #5**: Supervisor Reports - Added export to PDF/Excel, officer filtering, pagination for report history. Dashboard with charts, trends, and officer performance already existed.
-
-## Summary
-
-### Done This Session
-1. Fixed supervisor validation bug in union.service.ts (comparing wrong IDs)
-2. Removed current password requirement from password change
-3. Replaced hardcoded green backgrounds with neutral slate/blue gradients in loan pages
-4. Renamed "Union Assignment" to "Assignment" with tabs for union/member assignment
-5. Added dark mode support to key pages (dashboard, loan pages)
-6. Fixed double confirmation modal for loan approval with AlertDialog
-7. Replaced Link with router.push in customer-list.tsx and loan pages
-8. Added bulk assignment feature for unions and members
-9. Added loan term min/max validation from loan type
-10. Added double confirmation for member reassignment
-11. Verified audit logging is already fully implemented
-12. Enhanced supervisor reports with PDF/Excel export, officer filtering, and pagination
-
-### Still Needs Work
-1. Theme/branding colors need ThemeProvider to convert hex to oklch on load
-2. Dark mode needs full audit across all 29 affected files
-3. use npx skills add https://github.com/anthropics/skills --skill frontend-design
-### Files Modified
-- `backend/src/service/union.service.ts` - Fixed supervisor validation
-- `backend/src/controllers/union.controller.ts` - Pass userId to createUnion
-- `backend/src/service/settings.service.ts` - Make currentPassword optional
-- `frontend/components/settings/password-settings-enhanced.tsx` - Remove current password field
-- `frontend/components/customer-list.tsx` - Replace Link with router.push
-- `frontend/app/dashboard/business-management/loan/page.tsx` - Remove green, add dark mode, router.push
-- `frontend/app/dashboard/business-management/loan/[id]/page.tsx` - Double confirmation, router.push
-- `frontend/app/dashboard/business-management/loan/[id]/edit/page.tsx` - Added loan term validation
-- `frontend/app/dashboard/business-management/loan/create/page.tsx` - Added loan term validation
-- `frontend/app/dashboard/business-management/union-assignment/page.tsx` - Tabs, bulk assignment, double confirmation
-- `frontend/components/ui/app-sidebar.tsx` - Rename "Union Assignment" to "Assignment"
-- `frontend/app/dashboard/page.tsx` - Add dark mode support
-- `frontend/app/dashboard/supervisor-reports/page.tsx` - Added export, filtering, pagination
+### Previous Fixes (From Task System)
+- [x] Fix supervisor validation bug in union.service.ts
+- [x] Remove current password requirement from password change
+- [x] Fix theme/branding colors not applying
+- [x] Remove hardcoded green background in loan management
+- [x] Rename Assignment page and add tabs
+- [x] Fix dark mode UI issues
+- [x] Add audit logging for CRUD operations
+- [x] Fix double confirmation modal for loan approval
+- [x] Replace Link with router.push for URL visibility
+- [x] Implement member reassignment with cascade
+- [x] Add loan term validation from loan type
+- [x] Add bulk assignment for members and unions
+- [x] Complete supervisor reports with export and filtering
+- [x] Redesign dashboard with Horizon UI patterns
 
 ---
-*Last updated: January 2026*
+
+## In Progress
+
+### UI Redesign (Task #15)
+- [ ] Redesign loan management pages with Horizon UI
+  - [ ] Loan list page
+  - [ ] Loan details page
+  - [ ] Loan creation form
+  - [ ] Repayment schedule view
+
+---
+
+## Pending Tasks
+
+### Security Review & Improvements
+- [ ] Full security audit
+- [ ] Rate limiting review (currently 500 req/15min in production)
+- [ ] RLS (Row Level Security) - already implemented via service layer
+- [ ] API key exposure check
+- [ ] CAPTCHA implementation (optional)
+- [ ] HTTPS verification (handled by Vercel/Render)
+- [ ] Input sanitization review (Zod validation in place)
+- [ ] Dependency update (npm audit)
+
+---
+
+## Notes
+
+### Rate Limiting (Current State)
+- Production: 500 requests per 15 minutes per IP
+- Development: 2000 requests per 15 minutes
+- Health checks exempt
+
+### Security Already Implemented
+- JWT with refresh tokens
+- Bcrypt password hashing
+- CORS configured
+- Helmet security headers
+- Role-based access control
+- Zod input validation
+- Audit logging
+
+### Deployment
+- Frontend: Vercel (auto-deploys on push)
+- Backend: Render (auto-deploys on push)
+- Database: CockroachDB (PostgreSQL-compatible)
