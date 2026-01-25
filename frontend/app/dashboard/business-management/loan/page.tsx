@@ -116,27 +116,31 @@ const SummaryCard = ({
   title: string;
   value: string | React.ReactNode;
   icon: React.ReactNode;
-  color?: "green" | "emerald" | "teal" | "blue" | "orange" | "red";
+  color?: "green" | "emerald" | "teal" | "blue" | "orange" | "red" | "indigo" | "violet" | "amber" | "slate";
   subtitle?: string;
   trend?: { value: number; isPositive: boolean };
 }) => {
-  const colorConfig = {
-    green: "from-blue-500 to-indigo-600",
+  const colorConfig: Record<string, string> = {
+    green: "from-green-500 to-emerald-600",
     emerald: "from-emerald-500 to-teal-600",
     teal: "from-teal-500 to-green-600",
     blue: "from-blue-500 to-indigo-600",
     orange: "from-orange-500 to-amber-600",
     red: "from-red-500 to-rose-600",
+    indigo: "from-indigo-500 to-purple-600",
+    violet: "from-violet-500 to-purple-600",
+    amber: "from-amber-500 to-orange-600",
+    slate: "from-slate-500 to-gray-600",
   };
 
   return (
-    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-green-50">
+    <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-800">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <div className="text-2xl font-bold text-gray-900">{value}</div>
-            {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+          <div className="space-y-2 min-w-0 flex-1 mr-3">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white truncate">{value}</div>
+            {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>}
             {trend && (
               <div className="flex items-center gap-1">
                 <TrendingUp
@@ -156,7 +160,7 @@ const SummaryCard = ({
             )}
           </div>
           <div
-            className={`p-3 rounded-xl bg-gradient-to-r ${colorConfig[color]} shadow-lg`}
+            className={`p-3 rounded-xl bg-gradient-to-r ${colorConfig[color] || colorConfig.blue} shadow-lg flex-shrink-0`}
           >
             {Icon}
           </div>

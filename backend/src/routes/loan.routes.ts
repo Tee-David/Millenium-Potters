@@ -20,6 +20,7 @@ const router = Router();
 
 router.use(authenticate);
 
+// Static routes must come BEFORE dynamic :id routes
 router.post(
   "/",
   requireStaff,
@@ -30,6 +31,15 @@ router.post(
 
 router.get("/", requireStaff, LoanController.getLoans);
 
+// Generate missing repayment schedules (Admin only) - MUST be before /:id routes
+router.post(
+  "/generate-missing-schedules",
+  requireAdmin,
+  auditLog("MISSING_SCHEDULES_GENERATED", "Loan"),
+  LoanController.generateMissingSchedules
+);
+
+// Dynamic :id routes come AFTER static routes
 router.get("/:id", requireStaff, LoanController.getLoanById);
 
 router.get("/:id/schedule", requireStaff, LoanController.getLoanSchedule);
@@ -72,14 +82,6 @@ router.delete(
   "/:id",
   auditLog("LOAN_DELETED", "Loan"),
   LoanController.deleteLoan
-);
-
-// Generate missing repayment schedules (Admin only)
-router.post(
-  "/generate-missing-schedules",
-  requireAdmin,
-  auditLog("MISSING_SCHEDULES_GENERATED", "Loan"),
-  LoanController.generateMissingSchedules
 );
 
 export default router;

@@ -527,9 +527,13 @@ function RepaymentDetailsPageContent() {
                     Customer
                   </Label>
                   <p className="text-sm font-semibold text-gray-900 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    {repayment.loan?.customer
-                      ? `${repayment.loan.customer.firstName} ${repayment.loan.customer.lastName}`
-                      : "N/A"}
+                    {(() => {
+                      // Handle both customer and unionMember (backend uses unionMember)
+                      const member = (repayment.loan as any)?.customer || (repayment.loan as any)?.unionMember;
+                      return member
+                        ? `${member.firstName} ${member.lastName}`
+                        : "N/A";
+                    })()}
                   </p>
                 </div>
                 <div className="space-y-2">

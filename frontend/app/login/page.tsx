@@ -14,21 +14,19 @@ import {
   Lock,
   Shield,
   TrendingUp,
-  Users,
-  CheckCircle,
-  ArrowRight,
-  Sparkles,
   Zap,
-  Award,
   Wifi,
   WifiOff,
   RefreshCw,
+  ArrowRight,
+  Banknote,
+  Users,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent } from "@/components/ui/card";
 import { auth } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://millenium-potters.onrender.com/api";
@@ -130,7 +128,6 @@ const LoginPage: FC = () => {
       if (retryCount < 3) {
         setBackendStatus("waking");
         setRetryCount((prev) => prev + 1);
-        // Retry after delay (Render cold start can take 30-60 seconds)
         setTimeout(checkBackendHealth, 5000);
       } else {
         setBackendStatus("offline");
@@ -140,7 +137,6 @@ const LoginPage: FC = () => {
 
   useEffect(() => {
     checkBackendHealth();
-    // Check health every 30 seconds
     const interval = setInterval(checkBackendHealth, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -170,24 +166,33 @@ const LoginPage: FC = () => {
         password: password.trim(),
       });
 
-      /* ---- persist token based on rememberMe ---- */
-      const token = response.data.data.accessToken;
+      const { accessToken, refreshToken, user } = response.data.data;
 
       if (rememberMe) {
-        // Store in localStorage for persistent session
-        localStorage.setItem("access_token", token);
+        // Store tokens and user in localStorage for persistent login
+        localStorage.setItem("access_token", accessToken);
+        localStorage.setItem("refresh_token", refreshToken);
         localStorage.setItem("remember_me", "true");
-        // Remove from sessionStorage if exists
+        if (user) {
+          localStorage.setItem("user", JSON.stringify(user));
+        }
+        // Clear any session storage
         sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("refresh_token");
       } else {
-        // Store in sessionStorage for session-only (clears when browser closes)
-        sessionStorage.setItem("access_token", token);
-        // Remove from localStorage if exists
+        // Store tokens in sessionStorage for session-only login
+        sessionStorage.setItem("access_token", accessToken);
+        sessionStorage.setItem("refresh_token", refreshToken);
+        if (user) {
+          sessionStorage.setItem("user", JSON.stringify(user));
+        }
+        // Clear localStorage
         localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
         localStorage.removeItem("remember_me");
+        localStorage.removeItem("user");
       }
 
-      /* ---- success feedback ---- */
       toast.success("Login successful! Redirecting…");
       router.replace("/dashboard");
     } catch (raw) {
@@ -200,190 +205,166 @@ const LoginPage: FC = () => {
 
   /* ---------- UI ------------------------------------------------- */
   return (
-    <div className="min-h-screen flex">
-      {/* Left – Enhanced Form Section */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo only — no container/padding */}
-          <div className="text-center space-y-4">
-            <div className="flex justify-center">
-              <Image
-                src="/logo-horizontal.png"
-                alt="Company Logo"
-                width={200}
-                height={60}
-                className="h-14 sm:h-16 w-auto object-contain"
-                priority
-                onError={(e) => {
-                  e.currentTarget.src = "/logo.png";
-                }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                Welcome Back
-              </h1>
-              <p className="text-gray-600 text-lg">
-                Sign in to your account to continue
-              </p>
-            </div>
+    <div className="min-h-screen flex bg-background">
+      {/* Left – Form Section */}
+      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-16 xl:px-24">
+        <div className="w-full max-w-[420px] mx-auto">
+          {/* Logo */}
+          <div className="mb-10">
+            <Image
+              src="/logo-horizontal.png"
+              alt="Millennium Potters"
+              width={180}
+              height={48}
+              className="h-10 w-auto object-contain dark:brightness-0 dark:invert"
+              priority
+              onError={(e) => {
+                e.currentTarget.src = "/logo.png";
+              }}
+            />
           </div>
 
-          {/* Enhanced Form Card */}
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Field */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="text-sm font-semibold text-gray-700"
-                  >
-                    Email Address
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value.trim());
-                        if (errors.email)
-                          setErrors((s) => ({ ...s, email: "" }));
-                      }}
-                      className={`pl-12 h-12 border-2 transition-all duration-200 ${
-                        errors.email
-                          ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
-                      }`}
-                      placeholder="Enter your email address"
-                    />
-                  </div>
-                  {errors.email && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+              Welcome back
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              Enter your credentials to access your account
+            </p>
+          </div>
 
-                {/* Password Field */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="password"
-                    className="text-sm font-semibold text-gray-700"
-                  >
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value.trim());
-                        if (errors.password)
-                          setErrors((s) => ({ ...s, password: "" }));
-                      }}
-                      className={`pl-12 pr-12 h-12 border-2 transition-all duration-200 ${
-                        errors.password
-                          ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-gray-200 focus:border-emerald-500 focus:ring-emerald-500"
-                      }`}
-                      placeholder="Enter your password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5" />
-                      ) : (
-                        <Eye className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-                      {errors.password}
-                    </p>
-                  )}
-                </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Field */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                Email address
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value.trim());
+                    if (errors.email) setErrors((s) => ({ ...s, email: "" }));
+                  }}
+                  className={`pl-10 h-11 ${
+                    errors.email
+                      ? "border-destructive focus-visible:ring-destructive/20"
+                      : ""
+                  }`}
+                  placeholder="name@company.com"
+                />
+              </div>
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
+            </div>
 
-                {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Checkbox
-                      id="remember"
-                      checked={rememberMe}
-                      onCheckedChange={(c) => setRememberMe(Boolean(c))}
-                      className="border-2 border-gray-300 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
-                    />
-                    <Label
-                      htmlFor="remember"
-                      className="text-sm text-gray-600 cursor-pointer"
-                    >
-                      Remember me
-                    </Label>
-                  </div>
-                  {/* <Link
-                    href="/auth/forgot-password"
-                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
-                  >
-                    Forgot password?
-                  </Link> */}
-                </div>
-
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-12 bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+            {/* Password Field */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                Password
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value.trim());
+                    if (errors.password) setErrors((s) => ({ ...s, password: "" }));
+                  }}
+                  className={`pl-10 pr-10 h-11 ${
+                    errors.password
+                      ? "border-destructive focus-visible:ring-destructive/20"
+                      : ""
+                  }`}
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Signing In...
-                    </>
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <>
-                      Sign In
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </>
+                    <Eye className="h-4 w-4" />
                   )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              )}
+            </div>
 
-          {/* Backend Status Indicator */}
-          <div className="flex items-center justify-center gap-2 text-sm">
+            {/* Remember Me */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(c) => setRememberMe(Boolean(c))}
+              />
+              <Label
+                htmlFor="remember"
+                className="text-sm text-muted-foreground cursor-pointer select-none"
+              >
+                Remember me for 30 days
+              </Label>
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full h-11 font-medium"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </form>
+
+          {/* Backend Status */}
+          <div className="mt-8 flex items-center justify-center gap-2 text-sm">
             {backendStatus === "checking" && (
-              <div className="flex items-center gap-2 text-gray-500">
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                <span>Checking server status...</span>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                <span>Checking connection...</span>
               </div>
             )}
             {backendStatus === "online" && (
-              <div className="flex items-center gap-2 text-emerald-600">
-                <Wifi className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
                 <span>Server online</span>
               </div>
             )}
             {backendStatus === "waking" && (
-              <div className="flex items-center gap-2 text-amber-600">
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                <span>Server waking up... Please wait</span>
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                <span>Server waking up...</span>
               </div>
             )}
             {backendStatus === "offline" && (
-              <div className="flex items-center gap-2 text-red-500">
-                <WifiOff className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-destructive">
+                <WifiOff className="h-3.5 w-3.5" />
                 <span>Server offline</span>
                 <button
                   onClick={() => {
@@ -391,7 +372,7 @@ const LoginPage: FC = () => {
                     setBackendStatus("checking");
                     checkBackendHealth();
                   }}
-                  className="underline hover:no-underline ml-1"
+                  className="underline hover:no-underline font-medium"
                 >
                   Retry
                 </button>
@@ -400,130 +381,111 @@ const LoginPage: FC = () => {
           </div>
 
           {/* Security Notice */}
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-            <Shield className="h-4 w-4" />
-            <span>Your data is protected with enterprise-grade security</span>
+          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <Shield className="h-3.5 w-3.5" />
+            <span>Protected by enterprise-grade security</span>
+          </div>
+
+          {/* Footer Attribution */}
+          <div className="mt-8 pt-6 border-t border-border">
+            <p className="text-center text-xs text-muted-foreground">
+              © {new Date().getFullYear()} Millennium Potters | powered by{" "}
+              <a
+                href="https://wedigcreativity.com.ng"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                WDC Solutions
+              </a>
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Right – Enhanced Illustration Section */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-emerald-600 via-blue-600 to-indigo-700 items-center justify-center p-12 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-72 h-72 bg-white rounded-full -translate-x-36 -translate-y-36"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-48 translate-y-48"></div>
-          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-white rounded-full -translate-x-32 -translate-y-32"></div>
+      {/* Right – Branding Section */}
+      <div className="hidden lg:flex lg:flex-1 lg:flex-col lg:justify-between bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-12 relative overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+          {/* Gradient orbs */}
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="max-w-lg text-center space-y-8 relative z-10">
-          {/* Enhanced Header */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-center gap-2">
-              <Sparkles className="h-8 w-8 text-yellow-300 animate-pulse" />
-              <h2 className="text-5xl font-bold text-white">
-                Millennium Potters
-              </h2>
-              <Sparkles className="h-8 w-8 text-yellow-300 animate-pulse" />
+        {/* Top Section - Company Name */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+              <Banknote className="h-5 w-5 text-slate-900" />
             </div>
-            <p className="text-xl text-emerald-100 font-medium">
-              Loan Management System
-            </p>
+            <span className="text-xl font-semibold text-white">Millennium Potters</span>
           </div>
+        </div>
 
-          {/* Feature Highlights */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Zap className="h-6 w-6 text-yellow-300" />
+        {/* Center Section - Main Message */}
+        <div className="relative z-10 max-w-md">
+          <h2 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
+            Empowering
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">
+              Financial Growth
+            </span>
+          </h2>
+          <p className="mt-6 text-lg text-slate-300 leading-relaxed">
+            A complete loan management solution designed for union-based microfinance operations.
+            Manage members, process loans, and track repayments with ease.
+          </p>
+
+          {/* Feature Cards */}
+          <div className="mt-10 grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center mb-3">
+                <Users className="h-4 w-4 text-amber-400" />
               </div>
-              <div>
-                <h3 className="text-white font-semibold text-lg">
-                  Lightning Fast
-                </h3>
-                <p className="text-emerald-100">
-                  Instant loan processing and approvals
-                </p>
-              </div>
+              <h3 className="text-sm font-medium text-white">Union Management</h3>
+              <p className="mt-1 text-xs text-slate-400">Organize members by unions</p>
             </div>
-
-            <div className="flex items-center gap-4 text-left">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Shield className="h-6 w-6 text-yellow-300" />
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center mb-3">
+                <Zap className="h-4 w-4 text-amber-400" />
               </div>
-              <div>
-                <h3 className="text-white font-semibold text-lg">
-                  Secure & Reliable
-                </h3>
-                <p className="text-emerald-100">
-                  Bank-level security for your data
-                </p>
-              </div>
+              <h3 className="text-sm font-medium text-white">Quick Processing</h3>
+              <p className="mt-1 text-xs text-slate-400">Fast loan approvals</p>
             </div>
-
-            <div className="flex items-center gap-4 text-left">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <TrendingUp className="h-6 w-6 text-yellow-300" />
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center mb-3">
+                <BarChart3 className="h-4 w-4 text-amber-400" />
               </div>
-              <div>
-                <h3 className="text-white font-semibold text-lg">
-                  Smart Analytics
-                </h3>
-                <p className="text-emerald-100">
-                  Real-time insights and reporting
-                </p>
-              </div>
+              <h3 className="text-sm font-medium text-white">Real-time Reports</h3>
+              <p className="mt-1 text-xs text-slate-400">Track performance</p>
             </div>
-
-            {/* <div className="flex items-center gap-4 text-left">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Users className="h-6 w-6 text-yellow-300" />
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center mb-3">
+                <Shield className="h-4 w-4 text-amber-400" />
               </div>
-              <div>
-                <h3 className="text-white font-semibold text-lg">
-                  Team Collaboration
-                </h3>
-                <p className="text-emerald-100">
-                  Seamless workflow across branches
-                </p>
-              </div>
-            </div> */}
-          </div>
-
-          {/* Enhanced Image */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl blur-xl opacity-30 animate-pulse"></div>
-            <div className="relative bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/20">
-              <Image
-                src="/flyer.jpg"
-                alt="Loan management illustration"
-                width={400}
-                height={300}
-                className="max-w-full h-auto rounded-xl shadow-2xl"
-                priority // Add priority for LCP optimization
-                style={{
-                  width: "auto",
-                  height: "auto",
-                }}
-              />
+              <h3 className="text-sm font-medium text-white">Secure Access</h3>
+              <p className="mt-1 text-xs text-slate-400">Role-based permissions</p>
             </div>
           </div>
+        </div>
 
-          {/* Stats */}
-          {/* <div className="grid grid-cols-3 gap-4 pt-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">10K+</div>
-              <div className="text-sm text-emerald-100">Loans Processed</div>
+        {/* Bottom Section - Trust Indicators */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-8 text-sm text-slate-400">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+              <span>99.9% Uptime</span>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">99.9%</div>
-              <div className="text-sm text-emerald-100">Uptime</div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+              <span>24/7 Support</span>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">24/7</div>
-              <div className="text-sm text-emerald-100">Support</div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+              <span>Bank-grade Security</span>
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

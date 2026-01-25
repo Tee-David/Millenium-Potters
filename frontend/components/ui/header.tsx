@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { Menu, Wifi, WifiOff, RefreshCw } from "lucide-react";
-import { useSidebar } from "@/components/ui/aceternity-sidebar";
+import { Menu, Wifi, WifiOff, RefreshCw, User } from "lucide-react";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { useAuth } from "@/hooks/useAuth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://millenium-potters.onrender.com/api";
 
@@ -13,7 +13,7 @@ interface HeaderProps {
 }
 
 export function Header({ onMobileMenuClick }: HeaderProps) {
-  const sidebar = useSidebar();
+  const { user } = useAuth();
   const [connectionStatus, setConnectionStatus] = useState<"online" | "offline" | "checking">("checking");
 
   useEffect(() => {
@@ -39,12 +39,16 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
     return () => clearInterval(interval);
   }, []);
 
+  // Get display name from user email (before @)
+  const displayName = user?.email?.split("@")[0] || "User";
+  const roleLabel = user?.role?.replace("_", " ") || "";
+
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex-shrink-0 sticky top-0 z-20">
       <div className="flex items-center justify-between">
-        {/* Left side - Menu toggle */}
+        {/* Left side - Mobile Menu toggle only */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Only visible on mobile */}
           <button
             onClick={onMobileMenuClick}
             className={cn(
@@ -56,21 +60,30 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
             <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
           </button>
 
-          {/* Desktop Sidebar Toggle */}
-          <button
-            onClick={() => sidebar?.setOpen?.(!sidebar?.open)}
-            className={cn(
-              "hidden md:flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-              "min-h-[36px] min-w-[36px]"
-            )}
-            aria-label="Toggle sidebar"
-          >
-            <Menu className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-          </button>
+          {/* Desktop - Empty space where hamburger was */}
+          <div className="hidden md:block" />
         </div>
 
-        {/* Right side - Actions */}
+        {/* Right side - User info and Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* User Display - Responsive */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+              <User className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="hidden sm:flex flex-col items-end">
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
+                {displayName}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                {roleLabel}
+              </span>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="hidden sm:block h-8 w-px bg-gray-200 dark:bg-gray-700" />
+
           {/* Connection Status Indicator */}
           <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium">
             {connectionStatus === "checking" && (

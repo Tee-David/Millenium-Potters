@@ -24,13 +24,63 @@ export const getAccessToken = (): string | null => {
 };
 
 /**
- * Clear access token from both storages
+ * Get refresh token from storage
+ * Checks localStorage first (for "remember me"), then sessionStorage
+ */
+export const getRefreshToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return (
+    localStorage.getItem("refresh_token") ||
+    sessionStorage.getItem("refresh_token")
+  );
+};
+
+/**
+ * Check if "remember me" is enabled
+ */
+export const isRememberMeEnabled = (): boolean => {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem("remember_me") === "true";
+};
+
+/**
+ * Store tokens in the appropriate storage based on "remember me" setting
+ */
+export const storeTokens = (
+  accessToken: string,
+  refreshToken: string,
+  user?: any
+): void => {
+  if (typeof window === "undefined") return;
+
+  const useLocalStorage = isRememberMeEnabled();
+
+  if (useLocalStorage) {
+    localStorage.setItem("access_token", accessToken);
+    localStorage.setItem("refresh_token", refreshToken);
+    if (user) localStorage.setItem("user", JSON.stringify(user));
+    // Clear session storage
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("refresh_token");
+  } else {
+    sessionStorage.setItem("access_token", accessToken);
+    sessionStorage.setItem("refresh_token", refreshToken);
+    if (user) sessionStorage.setItem("user", JSON.stringify(user));
+  }
+};
+
+/**
+ * Clear all auth tokens from both storages
  */
 export const clearAccessToken = (): void => {
   if (typeof window === "undefined") return;
   localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
   localStorage.removeItem("remember_me");
+  localStorage.removeItem("user");
   sessionStorage.removeItem("access_token");
+  sessionStorage.removeItem("refresh_token");
+  sessionStorage.removeItem("user");
 };
 
 export const api = axios.create({

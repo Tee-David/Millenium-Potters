@@ -334,12 +334,21 @@ export default function LoanEditPage() {
         return;
       }
 
-      // Check if loan can be edited based on status
-      if (
-        loanData.status !== "DRAFT" &&
-        loanData.status !== "PENDING_APPROVAL"
-      ) {
-        toast.error("This loan cannot be edited due to its current status");
+      // Check if loan can be edited based on status and user role
+      // Admin can edit loans at any status (except COMPLETED, CANCELLED, WRITTEN_OFF)
+      // Credit officers can only edit DRAFT and PENDING_APPROVAL loans
+      const isAdmin = currentUser?.role === "ADMIN";
+      const isEditableStatus = loanData.status === "DRAFT" || loanData.status === "PENDING_APPROVAL";
+      const isAdminEditableStatus = !["COMPLETED", "CANCELLED", "WRITTEN_OFF"].includes(loanData.status);
+
+      if (!isAdmin && !isEditableStatus) {
+        toast.error("Credit officers can only edit loans before approval");
+        router.push(`/dashboard/business-management/loan/${loanId}`);
+        return;
+      }
+
+      if (isAdmin && !isAdminEditableStatus) {
+        toast.error("This loan cannot be edited due to its final status");
         router.push(`/dashboard/business-management/loan/${loanId}`);
         return;
       }
@@ -580,13 +589,18 @@ export default function LoanEditPage() {
       return;
     }
 
-    // Check if loan can be edited
-    if (
-      loanStatus !== null &&
-      loanStatus !== "DRAFT" &&
-      loanStatus !== "PENDING_APPROVAL"
-    ) {
-      toast.error("This loan cannot be edited due to its current status");
+    // Check if loan can be edited based on role
+    const isAdmin = currentUser?.role === "ADMIN";
+    const isEditableStatus = loanStatus === "DRAFT" || loanStatus === "PENDING_APPROVAL";
+    const isAdminEditableStatus = loanStatus !== null && !["COMPLETED", "CANCELLED", "WRITTEN_OFF"].includes(loanStatus);
+
+    if (!isAdmin && !isEditableStatus) {
+      toast.error("Credit officers can only edit loans before approval");
+      return;
+    }
+
+    if (isAdmin && !isAdminEditableStatus) {
+      toast.error("This loan cannot be edited due to its final status");
       return;
     }
 
@@ -947,10 +961,13 @@ export default function LoanEditPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          {/* Status Warning */}
-          {loanStatus !== null &&
-            loanStatus !== "DRAFT" &&
-            loanStatus !== "PENDING_APPROVAL" && (
+          {/* Status Warning - Show for non-admins when loan is approved, or for admins when loan is finalized */}
+          {loanStatus !== null && (
+            // For credit officers: warn if not DRAFT or PENDING_APPROVAL
+            (currentUser?.role !== "ADMIN" && loanStatus !== "DRAFT" && loanStatus !== "PENDING_APPROVAL") ||
+            // For admins: warn only if status is finalized
+            (currentUser?.role === "ADMIN" && ["COMPLETED", "CANCELLED", "WRITTEN_OFF"].includes(loanStatus))
+          ) && (
               <Card className="shadow-sm border-0 bg-yellow-50 border-yellow-200">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -961,8 +978,10 @@ export default function LoanEditPage() {
                       </h3>
                       <p className="text-sm text-yellow-700 mt-1">
                         This loan has a status of <strong>{loanStatus}</strong>{" "}
-                        and cannot be modified. Only draft and pending approval
-                        loans can be edited.
+                        and cannot be modified.{" "}
+                        {currentUser?.role === "ADMIN"
+                          ? "Completed, cancelled, and written-off loans cannot be edited."
+                          : "Only draft and pending approval loans can be edited by credit officers."}
                       </p>
                     </div>
                   </div>
@@ -1418,9 +1437,13 @@ export default function LoanEditPage() {
                 className="w-full sm:w-auto h-11 sm:h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={
                   loading ||
-                  (loanStatus !== null &&
+                  (currentUser?.role !== "ADMIN" &&
+                    loanStatus !== null &&
                     loanStatus !== "DRAFT" &&
-                    loanStatus !== "PENDING_APPROVAL")
+                    loanStatus !== "PENDING_APPROVAL") ||
+                  (currentUser?.role === "ADMIN" &&
+                    loanStatus !== null &&
+                    ["COMPLETED", "CANCELLED", "WRITTEN_OFF"].includes(loanStatus))
                 }
               >
                 {loading ? (

@@ -363,6 +363,30 @@ function UsersPageContent() {
     }
   };
 
+  const handleBulkDelete = async (userIds: string[]) => {
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const userId of userIds) {
+      try {
+        await usersApi.remove(userId);
+        successCount++;
+      } catch (err: any) {
+        failCount++;
+        console.error(`Failed to delete user ${userId}:`, err);
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success(`Successfully deleted ${successCount} user(s)`);
+    }
+    if (failCount > 0) {
+      toast.error(`Failed to delete ${failCount} user(s) (may have dependencies)`);
+    }
+
+    fetchUsers();
+  };
+
   const handleViewDetails = async (user: SimpleUser) => {
     setDetailsModalOpen(true);
     setDetailsLoading(true);
@@ -427,13 +451,20 @@ function UsersPageContent() {
       const data = response.data?.data ?? response.data;
 
       if (data?.accessToken && data?.refreshToken) {
-        // Update auth context with new user (this also stores the tokens)
-        await login(data.accessToken, data.refreshToken);
+        // Store tokens directly (don't use login which might have race conditions)
+        localStorage.setItem("access_token", data.accessToken);
+        localStorage.setItem("refresh_token", data.refreshToken);
+
+        // Store user data for immediate access
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
 
         toast.success(`Now logged in as ${data.user?.email || user.email}`);
 
-        // Redirect to dashboard
-        router.push("/dashboard");
+        // Full page reload to ensure all components get the new user context
+        // This is necessary because role-based navigation needs a fresh state
+        window.location.href = "/dashboard";
       } else {
         toast.error("Failed to impersonate user - invalid response");
       }
@@ -554,6 +585,7 @@ function UsersPageContent() {
         onEdit={handleEditUser}
         onChangePassword={handlePasswordModal}
         onDelete={handleDeleteUser}
+        onBulkDelete={handleBulkDelete}
         deletingId={deletingId}
         page={page}
         pageSize={pageSize}

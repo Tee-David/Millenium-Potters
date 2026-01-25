@@ -393,6 +393,25 @@ function DesktopSidebar({
           open={open}
           onClick={() => setOpen(!open)}
         />
+
+        {/* Footer Attribution */}
+        {open && (
+          <div className="pt-4 mt-2 border-t border-neutral-200 dark:border-neutral-700">
+            <p className="text-[10px] text-neutral-500 dark:text-neutral-400 text-center leading-relaxed">
+              © {new Date().getFullYear()} Millennium Potters
+              <br />
+              powered by{" "}
+              <a
+                href="https://wedigcreativity.com.ng"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+              >
+                WDC Solutions
+              </a>
+            </p>
+          </div>
+        )}
       </div>
     </>
   );
@@ -773,6 +792,23 @@ export function MobileSidebar({
                   open={true}
                   onClick={handleLogout}
                 />
+
+                {/* Footer Attribution */}
+                <div className="pt-4 mt-2 border-t border-neutral-200 dark:border-neutral-700">
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center leading-relaxed">
+                    © {new Date().getFullYear()} Millennium Potters
+                    <br />
+                    powered by{" "}
+                    <a
+                      href="https://wedigcreativity.com.ng"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                    >
+                      WDC Solutions
+                    </a>
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
