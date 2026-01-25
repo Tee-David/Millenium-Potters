@@ -39,6 +39,14 @@ router.post(
   LoanController.generateMissingSchedules
 );
 
+// Regenerate schedule for a specific loan (Admin only)
+router.post(
+  "/regenerate-schedule/:loanId",
+  requireAdmin,
+  auditLog("SCHEDULE_REGENERATED", "Loan"),
+  LoanController.regenerateLoanSchedule
+);
+
 // Dynamic :id routes come AFTER static routes
 router.get("/:id", requireStaff, LoanController.getLoanById);
 

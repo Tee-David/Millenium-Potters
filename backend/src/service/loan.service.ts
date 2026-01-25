@@ -1170,4 +1170,62 @@ export class LoanService {
       errorCount,
     };
   }
+
+  static async regenerateLoanSchedule(loanId: string) {
+    console.log(`Regenerating schedule for loan ${loanId}...`);
+
+    // Get the loan
+    const loan = await prisma.loan.findUnique({
+      where: { id: loanId },
+      select: {
+        id: true,
+        loanNumber: true,
+        principalAmount: true,
+        termCount: true,
+        termUnit: true,
+        startDate: true,
+        status: true,
+        deletedAt: true,
+      },
+    });
+
+    if (!loan || loan.deletedAt) {
+      throw new Error("Loan not found");
+    }
+
+    console.log(`Found loan ${loan.loanNumber} with status ${loan.status}`);
+
+    // Delete existing schedules
+    const deleted = await prisma.repaymentScheduleItem.deleteMany({
+      where: { loanId: loan.id },
+    });
+
+    console.log(`Deleted ${deleted.count} existing schedule items`);
+
+    // Generate new schedule
+    await this.generateRepaymentSchedule(
+      loan.id,
+      loan.principalAmount.toNumber(),
+      loan.termCount,
+      loan.termUnit,
+      loan.startDate,
+      0 // No interest
+    );
+
+    // Get the new schedule items
+    const newScheduleItems = await prisma.repaymentScheduleItem.findMany({
+      where: { loanId: loan.id, deletedAt: null },
+      orderBy: { sequence: "asc" },
+    });
+
+    console.log(`✅ Generated ${newScheduleItems.length} new schedule items for loan ${loan.loanNumber}`);
+
+    return {
+      loanId: loan.id,
+      loanNumber: loan.loanNumber,
+      deletedCount: deleted.count,
+      newScheduleCount: newScheduleItems.length,
+      scheduleItems: newScheduleItems,
+    };
+  }
 }

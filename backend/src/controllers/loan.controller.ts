@@ -265,4 +265,37 @@ export class LoanController {
       next(error);
     }
   }
+
+  static async regenerateLoanSchedule(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { loanId } = req.params;
+
+      // Only allow ADMIN users to regenerate schedules
+      if (req.user!.role !== "ADMIN") {
+        return ApiResponseUtil.error(
+          res,
+          "Only administrators can regenerate schedules",
+          403
+        );
+      }
+
+      if (!loanId) {
+        return ApiResponseUtil.error(res, "Loan ID is required", 400);
+      }
+
+      const result = await LoanService.regenerateLoanSchedule(loanId);
+
+      return ApiResponseUtil.success(
+        res,
+        result,
+        `Schedule regenerated successfully for loan ${result.loanNumber}`
+      );
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }

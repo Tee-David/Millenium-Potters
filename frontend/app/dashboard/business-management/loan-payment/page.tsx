@@ -27,8 +27,18 @@ const LoanPaymentSystem: React.FC = () => {
       setError("");
       try {
         const res = await loansApi.getAll();
-        setLoans(res.data.loans || []);
+        // Handle nested response: { success, data: { loans } } or { data: { loans } }
+        const data = res.data?.data || res.data;
+        const allLoans = data?.loans || [];
+        // Filter to show only loans that can have schedules viewed
+        // (APPROVED, ACTIVE, COMPLETED, DEFAULTED)
+        const activeLoans = allLoans.filter((loan: any) =>
+          ["APPROVED", "ACTIVE", "COMPLETED", "DEFAULTED"].includes(loan.status)
+        );
+        console.log("Total loans:", allLoans.length, "Active/Approved:", activeLoans.length);
+        setLoans(activeLoans);
       } catch (err: any) {
+        console.error("Failed to fetch loans:", err);
         setError("Failed to fetch loans");
       } finally {
         setLoading(false);
@@ -44,9 +54,17 @@ const LoanPaymentSystem: React.FC = () => {
     repaymentsApi
       .getRepaymentSchedule(selectedLoanId)
       .then((res) => {
-        setSchedule(res.data.schedule || []);
+        // Handle nested response structure: { success, message, data: { loan, schedule } }
+        const data = res.data?.data || res.data;
+        const scheduleItems = data?.schedule || [];
+        console.log("Schedule response:", res.data);
+        console.log("Extracted schedule items:", scheduleItems.length);
+        setSchedule(scheduleItems);
       })
-      .catch(() => setError("Failed to fetch repayment schedule"))
+      .catch((err) => {
+        console.error("Failed to fetch repayment schedule:", err);
+        setError(err?.response?.data?.message || "Failed to fetch repayment schedule");
+      })
       .finally(() => setLoading(false));
   }, [selectedLoanId]);
 
