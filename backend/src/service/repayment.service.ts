@@ -684,8 +684,16 @@ export class RepaymentService {
 
     const skip = (filters.page - 1) * filters.limit;
 
+    // Only show schedules for loans that are APPROVED, ACTIVE, COMPLETED, or DEFAULTED
+    const allowedLoanStatuses = ["APPROVED", "ACTIVE", "COMPLETED", "DEFAULTED"];
+
     const where: any = {
       deletedAt: null,
+      // Filter by loan status - only show schedules for approved/active loans
+      loan: {
+        status: { in: allowedLoanStatuses },
+        deletedAt: null,
+      },
     };
 
     // Apply basic filters first
@@ -719,8 +727,8 @@ export class RepaymentService {
     );
 
     if (userRole === Role.ADMIN) {
-      // ADMIN can see all schedules - no additional filtering
-      console.log("ADMIN user - showing all repayment schedules");
+      // ADMIN can see all schedules for approved/active loans - no additional filtering
+      console.log("ADMIN user - showing all repayment schedules for approved/active loans");
     } else if (userRole === Role.SUPERVISOR) {
       // SUPERVISOR can see all schedules (they supervise credit officers)
       console.log("SUPERVISOR user - showing all repayment schedules");
@@ -738,9 +746,10 @@ export class RepaymentService {
       const unionIds = userUnions.map(u => u.id);
 
       if (unionIds.length > 0) {
+        // Merge with existing loan filter
         where.loan = {
+          ...where.loan,
           unionId: { in: unionIds },
-          deletedAt: null,
         };
       } else {
         // Credit officer has no unions, return empty result

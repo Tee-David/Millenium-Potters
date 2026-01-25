@@ -392,7 +392,7 @@ export default function LoanDetailPage() {
     }
 
     if (
-      statusUpdateData.status === "REJECTED" &&
+      statusUpdateData.status === "CANCELED" &&
       !statusUpdateData.notes.trim()
     ) {
       toast.error("Please provide a reason for rejection");
@@ -709,7 +709,7 @@ export default function LoanDetailPage() {
                         Approve Loan
                       </Button>
                       <Button
-                        onClick={() => openStatusModal("REJECTED")}
+                        onClick={() => openStatusModal("CANCELED")}
                         className="bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white shadow-lg flex items-center gap-2"
                       >
                         <XCircle className="h-4 w-4" />
@@ -1643,28 +1643,30 @@ export default function LoanDetailPage() {
                   ? "Confirm Loan Approval"
                   : "Confirm Loan Rejection"}
               </AlertDialogTitle>
-              <AlertDialogDescription>
-                {statusUpdateData.status === "APPROVED" ? (
-                  <>
-                    Are you sure you want to approve this loan? This action will:
-                    <ul className="list-disc ml-6 mt-2 space-y-1">
-                      <li>Generate the repayment schedule</li>
-                      <li>Make the loan active for disbursement</li>
-                      <li>Notify the credit officer</li>
-                    </ul>
-                    <p className="mt-3 font-medium">This action cannot be undone.</p>
-                  </>
-                ) : (
-                  <>
-                    Are you sure you want to reject this loan? This action will:
-                    <ul className="list-disc ml-6 mt-2 space-y-1">
-                      <li>Cancel the loan application</li>
-                      <li>Notify the credit officer of the rejection</li>
-                      <li>Record the rejection reason in the system</li>
-                    </ul>
-                    <p className="mt-3 font-medium">This action cannot be undone.</p>
-                  </>
-                )}
+              <AlertDialogDescription asChild>
+                <div className="text-sm text-muted-foreground">
+                  {statusUpdateData.status === "APPROVED" ? (
+                    <>
+                      <p>Are you sure you want to approve this loan? This action will:</p>
+                      <ul className="list-disc ml-6 mt-2 space-y-1">
+                        <li>Generate the repayment schedule</li>
+                        <li>Make the loan active for disbursement</li>
+                        <li>Notify the credit officer</li>
+                      </ul>
+                      <p className="mt-3 font-medium">This action cannot be undone.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p>Are you sure you want to reject this loan? This action will:</p>
+                      <ul className="list-disc ml-6 mt-2 space-y-1">
+                        <li>Cancel the loan application</li>
+                        <li>Notify the credit officer of the rejection</li>
+                        <li>Record the rejection reason in the system</li>
+                      </ul>
+                      <p className="mt-3 font-medium">This action cannot be undone.</p>
+                    </>
+                  )}
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -1758,7 +1760,7 @@ export default function LoanDetailPage() {
                   onClick={() => {
                     // Validate before showing final confirmation
                     if (
-                      statusUpdateData.status === "REJECTED" &&
+                      statusUpdateData.status === "CANCELED" &&
                       !statusUpdateData.notes.trim()
                     ) {
                       toast.error("Please provide a reason for rejection");
