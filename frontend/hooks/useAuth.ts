@@ -98,9 +98,9 @@ export function useAuth() {
   };
 
   const login = useCallback(async (accessToken: string, refreshToken: string) => {
-    // Store the tokens
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
+    // Store the tokens using the same keys that getAccessToken() expects
+    localStorage.setItem("access_token", accessToken);
+    localStorage.setItem("refresh_token", refreshToken);
 
     // Fetch the new user profile
     await fetchUserProfile();

@@ -617,3 +617,39 @@ model ReportSession {
 
 // [DELETED] BranchTransfer model removed
 // [DELETED] BranchAnalytics model removed
+
+// ---------- Backup & Restore ----------
+
+model BackupRecord {
+  id            String   @id @default(cuid())
+  filename      String
+  fileSize      Int      // in bytes
+  location      String   // "local", "cloud", "both"
+  cloudinaryUrl String?  // if stored in cloud
+  localPath     String?  // if stored locally
+  type          String   // "manual", "scheduled"
+  status        String   // "completed", "failed", "in_progress"
+  recordCounts  Json?    // metadata about what was backed up
+  error         String?  // error message if failed
+  createdAt     DateTime @default(now())
+  createdBy     String?  // user who initiated (null for scheduled)
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([type])
+  @@map("backup_records")
+}
+
+model BackupScheduleSettings {
+  id               String    @id @default("default")
+  frequency        String    @default("disabled") // "daily", "weekly", "monthly", "disabled"
+  location         String    @default("cloud")    // "local", "cloud", "both"
+  retentionDays    Int       @default(30)
+  includeAuditLogs Boolean   @default(false)
+  includeSessions  Boolean   @default(false)
+  lastBackupAt     DateTime?
+  nextBackupAt     DateTime?
+  updatedAt        DateTime  @updatedAt
+
+  @@map("backup_schedule_settings")
+}

@@ -1461,3 +1461,46 @@ export const supervisorReportsApi = {
     return api.get(`/supervisor-reports/officers?${searchParams.toString()}`);
   },
 };
+
+// Backup & Restore API
+export const backupApi = {
+  // Create a new backup
+  create: (options?: {
+    includeAuditLogs?: boolean;
+    includeSessions?: boolean;
+    location?: "local" | "cloud" | "both";
+  }) => api.post("/backup/create", options || {}),
+
+  // List all backups
+  list: () => api.get("/backup/list"),
+
+  // Download a specific backup
+  download: (id: string) =>
+    api.get(`/backup/download/${id}`, { responseType: "blob" }),
+
+  // Delete a backup
+  remove: (id: string) => api.delete(`/backup/${id}`),
+
+  // Restore from backup data
+  restore: (backupData: any) => api.post("/backup/restore", { backupData }),
+
+  // Reset the entire system
+  resetSystem: (confirmationToken: string) =>
+    api.post("/backup/reset", { confirmationToken }),
+
+  // Get backup schedule settings
+  getScheduleSettings: () => api.get("/backup/schedule"),
+
+  // Update backup schedule settings
+  updateScheduleSettings: (data: {
+    frequency?: string;
+    location?: string;
+    retentionDays?: number;
+    includeAuditLogs?: boolean;
+    includeSessions?: boolean;
+  }) => api.put("/backup/schedule", data),
+
+  // Check dependencies before deletion
+  checkDependencies: (entityType: string, entityId: string) =>
+    api.get(`/backup/dependencies/${entityType}/${entityId}`),
+};

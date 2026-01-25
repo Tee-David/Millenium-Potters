@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Menu,
   Palette,
+  Database,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -49,6 +50,12 @@ const settingsItems: SettingsItem[] = [
     title: "Theme & Branding",
     description: "Customize colors and logos",
     icon: Palette,
+  },
+  {
+    id: "data",
+    title: "Data Management",
+    description: "Backup, restore, and reset system",
+    icon: Database,
   },
   // {
   //   id: "email",

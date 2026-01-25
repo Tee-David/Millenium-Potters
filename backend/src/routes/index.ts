@@ -16,6 +16,7 @@ import notesRoutes from "./notes.routes";
 import supervisorReportsRoutes from "./supervisor-reports.routes";
 // import assignmentHistoryRoutes from "./assignment-history.routes";
 import healthRoutes from "./health.routes";
+import backupRoutes from "./backup.routes";
 import path from "path";
 import express from "express";
 
@@ -61,6 +62,7 @@ router.use("/user-activity", userActivityRoutes);
 router.use("/notes", notesRoutes);
 router.use("/supervisor-reports", supervisorReportsRoutes);
 // router.use("/assignment-history", assignmentHistoryRoutes);
+router.use("/backup", backupRoutes);
 router.use("/", healthRoutes);
 
 export default router;
