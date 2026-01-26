@@ -160,10 +160,9 @@ const FileDropzone = ({
           {...getRootProps()}
           className={`
             border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-            ${
-              isDragActive
-                ? "border-emerald-400 bg-emerald-50"
-                : "border-gray-300 hover:border-emerald-400 hover:bg-emerald-50"
+            ${isDragActive
+              ? "border-emerald-400 bg-emerald-50"
+              : "border-gray-300 hover:border-emerald-400 hover:bg-emerald-50"
             }
           `}
         >
@@ -292,9 +291,8 @@ export default function LoanCreatePage() {
       return `${officer.firstName} ${officer.lastName} (${officer.email})`;
     }
     if (officer.firstName || officer.lastName) {
-      return `${officer.firstName || officer.lastName} (${
-        officer.email || ""
-      })`;
+      return `${officer.firstName || officer.lastName} (${officer.email || ""
+        })`;
     }
     return officer.email || `Credit Officer ${officer.id?.slice(-4) || ""}`;
   };
@@ -445,13 +443,13 @@ export default function LoanCreatePage() {
         .then((creditOfficersRes: any) => {
           const creditOfficersData = creditOfficersRes.data.success
             ? creditOfficersRes.data.data?.users ||
-              creditOfficersRes.data.data ||
-              []
+            creditOfficersRes.data.data ||
+            []
             : creditOfficersRes.data.data?.users ||
-              creditOfficersRes.data.users ||
-              creditOfficersRes.data.data ||
-              creditOfficersRes.data ||
-              [];
+            creditOfficersRes.data.users ||
+            creditOfficersRes.data.data ||
+            creditOfficersRes.data ||
+            [];
 
           // Filter active credit officers
           const activeOfficers = creditOfficersData.filter(
@@ -766,15 +764,13 @@ export default function LoanCreatePage() {
       if (selectedLoanType) {
         if (selectedLoanType.minTerm && maxTerm < selectedLoanType.minTerm) {
           errors.push(
-            `Loan term must be at least ${
-              selectedLoanType.minTerm
+            `Loan term must be at least ${selectedLoanType.minTerm
             } ${selectedLoanType.termUnit.toLowerCase()}(s) for this loan type`
           );
         }
         if (selectedLoanType.maxTerm && maxTerm > selectedLoanType.maxTerm) {
           errors.push(
-            `Loan term cannot exceed ${
-              selectedLoanType.maxTerm
+            `Loan term cannot exceed ${selectedLoanType.maxTerm
             } ${selectedLoanType.termUnit.toLowerCase()}(s) for this loan type`
           );
         }
@@ -846,17 +842,17 @@ export default function LoanCreatePage() {
       prev.map((g) =>
         g.id === guarantorId
           ? {
-              ...g,
-              documents: [
-                ...g.documents,
-                {
-                  id: Date.now().toString(),
-                  type: "",
-                  file: null,
-                  description: "",
-                },
-              ],
-            }
+            ...g,
+            documents: [
+              ...g.documents,
+              {
+                id: Date.now().toString(),
+                type: "",
+                file: null,
+                description: "",
+              },
+            ],
+          }
           : g
       )
     );
@@ -867,12 +863,12 @@ export default function LoanCreatePage() {
       prev.map((g) =>
         g.id === guarantorId
           ? {
-              ...g,
-              documents:
-                g.documents.length > 1
-                  ? g.documents.filter((doc) => doc.id !== docId)
-                  : g.documents,
-            }
+            ...g,
+            documents:
+              g.documents.length > 1
+                ? g.documents.filter((doc) => doc.id !== docId)
+                : g.documents,
+          }
           : g
       )
     );
@@ -888,11 +884,11 @@ export default function LoanCreatePage() {
       prev.map((g) =>
         g.id === guarantorId
           ? {
-              ...g,
-              documents: g.documents.map((doc) =>
-                doc.id === docId ? { ...doc, [field]: value } : doc
-              ),
-            }
+            ...g,
+            documents: g.documents.map((doc) =>
+              doc.id === docId ? { ...doc, [field]: value } : doc
+            ),
+          }
           : g
       )
     );
@@ -960,9 +956,8 @@ export default function LoanCreatePage() {
             }
 
             const uploadResponse = await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_URL ||
-                "https://l-d1.onrender.com/api"
+              `${process.env.NEXT_PUBLIC_API_URL ||
+              "https://millenium-potters.onrender.com/api"
               }/documents/loan/${loanId}`,
               {
                 method: "POST",
@@ -1022,8 +1017,7 @@ export default function LoanCreatePage() {
               );
 
               console.log(
-                `Uploading guarantor ${gIndex + 1} document ${dIndex + 1}: ${
-                  doc.type
+                `Uploading guarantor ${gIndex + 1} document ${dIndex + 1}: ${doc.type
                 }`
               );
 
@@ -1035,9 +1029,8 @@ export default function LoanCreatePage() {
               }
 
               const uploadResponse = await fetch(
-                `${
-                  process.env.NEXT_PUBLIC_API_URL ||
-                  "https://l-d1.onrender.com/api"
+                `${process.env.NEXT_PUBLIC_API_URL ||
+                "https://l-d1.onrender.com/api"
                 }/documents/loan/${loanId}/guarantor/${guarantor.id}`,
                 {
                   method: "POST",
@@ -1051,29 +1044,25 @@ export default function LoanCreatePage() {
               if (!uploadResponse.ok) {
                 const errorText = await uploadResponse.text();
                 console.error(
-                  `Failed to upload guarantor ${gIndex + 1} document ${
-                    dIndex + 1
+                  `Failed to upload guarantor ${gIndex + 1} document ${dIndex + 1
                   }:`,
                   errorText
                 );
                 toast.error(
-                  `Failed to upload guarantor ${gIndex + 1} document ${
-                    dIndex + 1
+                  `Failed to upload guarantor ${gIndex + 1} document ${dIndex + 1
                   }: ${errorText}`
                 );
               } else {
                 const uploadResult = await uploadResponse.json();
                 console.log(
-                  `Guarantor ${gIndex + 1} document ${
-                    dIndex + 1
+                  `Guarantor ${gIndex + 1} document ${dIndex + 1
                   } uploaded successfully:`,
                   uploadResult
                 );
               }
             } catch (docError) {
               console.error(
-                `Error uploading guarantor ${gIndex + 1} document ${
-                  dIndex + 1
+                `Error uploading guarantor ${gIndex + 1} document ${dIndex + 1
                 }:`,
                 docError
               );
@@ -1105,12 +1094,10 @@ export default function LoanCreatePage() {
       if (docCount > 0) {
         toast.success(
           isAdmin
-            ? `Loan created and automatically approved successfully with ${docCount} document${
-                docCount > 1 ? "s" : ""
-              } uploaded`
-            : `Loan created successfully and submitted for approval with ${docCount} document${
-                docCount > 1 ? "s" : ""
-              } uploaded`
+            ? `Loan created and automatically approved successfully with ${docCount} document${docCount > 1 ? "s" : ""
+            } uploaded`
+            : `Loan created successfully and submitted for approval with ${docCount} document${docCount > 1 ? "s" : ""
+            } uploaded`
         );
       } else {
         toast.success(
@@ -1186,8 +1173,7 @@ export default function LoanCreatePage() {
         toast.error("Server Error: Please try again later.");
       } else {
         toast.error(
-          `Error ${status || "Unknown"}: ${
-            message || "Failed to create loan. Please try again."
+          `Error ${status || "Unknown"}: ${message || "Failed to create loan. Please try again."
           }`
         );
       }
@@ -1200,9 +1186,8 @@ export default function LoanCreatePage() {
   const loanTypeOptions = loanTypes.map((t) => ({
     value: t.id,
     label: t.name
-      ? `${t.name} (₦${t.minAmount?.toLocaleString() || 0} - ₦${
-          t.maxAmount?.toLocaleString() || 0
-        })`
+      ? `${t.name} (₦${t.minAmount?.toLocaleString() || 0} - ₦${t.maxAmount?.toLocaleString() || 0
+      })`
       : t.name || "Unknown Type",
   }));
   const unionMemberOptions = unionMembers
@@ -1216,9 +1201,8 @@ export default function LoanCreatePage() {
     )
     .map((member) => ({
       value: member.id,
-      label: `${member.firstName || ""} ${member.lastName || ""} - ${
-        member.phone || member.email
-      }`.trim(),
+      label: `${member.firstName || ""} ${member.lastName || ""} - ${member.phone || member.email
+        }`.trim(),
     }));
 
   const creditOfficerOptions = filteredCreditOfficerOptions;

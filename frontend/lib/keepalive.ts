@@ -5,7 +5,7 @@
 
 // Remove trailing /api for health endpoint
 const BACKEND_URL = (
-  process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api"
+  process.env.NEXT_PUBLIC_API_URL || "https://millenium-potters.onrender.com/api"
 ).replace(/\/api\/?$/, "");
 
 class KeepAliveService {

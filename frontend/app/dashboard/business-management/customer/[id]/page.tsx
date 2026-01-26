@@ -49,13 +49,13 @@ interface Loan {
   startDate: string;
   endDate: string;
   status:
-    | "DRAFT"
-    | "PENDING_APPROVAL"
-    | "APPROVED"
-    | "ACTIVE"
-    | "COMPLETED"
-    | "CANCELLED"
-    | string;
+  | "DRAFT"
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "ACTIVE"
+  | "COMPLETED"
+  | "CANCELLED"
+  | string;
   createdAt: string;
 }
 
@@ -136,7 +136,7 @@ function CustomerDetailPageContent() {
       }
 
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api";
+        process.env.NEXT_PUBLIC_API_URL || "https://millenium-potters.onrender.com/api";
       const documentUrl = `${apiUrl}/documents/serve/${docId}`;
 
       // Fetch the document with authorization header
@@ -267,8 +267,7 @@ function CustomerDetailPageContent() {
       if (!memberData.documents || memberData.documents.length === 0) {
         try {
           const documentsResp = await fetch(
-            `${
-              process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api"
+            `${process.env.NEXT_PUBLIC_API_URL || "https://millenium-potters.onrender.com/api"
             }/documents/union-member/${params.id}`,
             {
               headers: {
@@ -598,8 +597,7 @@ function CustomerDetailPageContent() {
                     link.setAttribute("href", url);
                     link.setAttribute(
                       "download",
-                      `${customer.name.replace(/\s+/g, "_")}_loans_${
-                        new Date().toISOString().split("T")[0]
+                      `${customer.name.replace(/\s+/g, "_")}_loans_${new Date().toISOString().split("T")[0]
                       }.csv`
                     );
                     link.click();
@@ -663,17 +661,17 @@ function CustomerDetailPageContent() {
                             <Badge
                               variant={
                                 loan.status === "APPROVED" ||
-                                loan.status === "ACTIVE"
+                                  loan.status === "ACTIVE"
                                   ? "default"
                                   : "secondary"
                               }
                               className={
                                 loan.status === "APPROVED" ||
-                                loan.status === "ACTIVE"
+                                  loan.status === "ACTIVE"
                                   ? "bg-green-100 text-green-800 hover:bg-green-200"
                                   : loan.status === "PENDING_APPROVAL"
-                                  ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                                    ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                                    : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                               }
                             >
                               {loan.status?.replace("_", " ") || "Unknown"}
@@ -708,13 +706,13 @@ function CustomerDetailPageContent() {
                           <Badge
                             variant={
                               loan.status === "APPROVED" ||
-                              loan.status === "ACTIVE"
+                                loan.status === "ACTIVE"
                                 ? "default"
                                 : loan.status === "PENDING_APPROVAL"
-                                ? "secondary"
-                                : loan.status === "REJECTED"
-                                ? "destructive"
-                                : "outline"
+                                  ? "secondary"
+                                  : loan.status === "REJECTED"
+                                    ? "destructive"
+                                    : "outline"
                             }
                             className="text-xs"
                           >
@@ -842,9 +840,8 @@ function CustomerDetailPageContent() {
                                     doc.documentType?.name || "document"
                                   )
                                 }
-                                aria-label={`Download ${
-                                  doc.documentType?.name || "document"
-                                }`}
+                                aria-label={`Download ${doc.documentType?.name || "document"
+                                  }`}
                               >
                                 <Download className="h-4 w-4" />
                               </Button>
@@ -852,10 +849,9 @@ function CustomerDetailPageContent() {
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-                                aria-label={`Delete ${
-                                  doc.documentType?.name || "document"
-                                }`}
-                                // implement document delete logic if needed
+                                aria-label={`Delete ${doc.documentType?.name || "document"
+                                  }`}
+                              // implement document delete logic if needed
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

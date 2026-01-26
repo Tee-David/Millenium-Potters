@@ -251,11 +251,10 @@ const LoginPage: FC = () => {
                     setEmail(e.target.value.trim());
                     if (errors.email) setErrors((s) => ({ ...s, email: "" }));
                   }}
-                  className={`pl-10 h-11 ${
-                    errors.email
+                  className={`pl-10 h-11 ${errors.email
                       ? "border-destructive focus-visible:ring-destructive/20"
                       : ""
-                  }`}
+                    }`}
                   placeholder="name@company.com"
                 />
               </div>
@@ -279,11 +278,10 @@ const LoginPage: FC = () => {
                     setPassword(e.target.value.trim());
                     if (errors.password) setErrors((s) => ({ ...s, password: "" }));
                   }}
-                  className={`pl-10 pr-10 h-11 ${
-                    errors.password
+                  className={`pl-10 pr-10 h-11 ${errors.password
                       ? "border-destructive focus-visible:ring-destructive/20"
                       : ""
-                  }`}
+                    }`}
                   placeholder="Enter your password"
                 />
                 <button

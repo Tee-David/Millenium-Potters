@@ -9,23 +9,23 @@ export const transformImageUrl = (url: string): string => {
     if (url.includes("localhost:3001")) {
       return url.replace(
         "http://localhost:3001",
-        "https://l-d1.onrender.com/api"
+        "https://millenium-potters.onrender.com/api"
       );
     }
 
-    // Force HTTP to HTTPS for l-d1.onrender.com (Render requires HTTPS)
-    if (url.includes("l-d1.onrender.com") && url.startsWith("http://")) {
+    // Force HTTP to HTTPS for millenium-potters.onrender.com (Render requires HTTPS)
+    if (url.includes("millenium-potters.onrender.com") && url.startsWith("http://")) {
       url = url.replace("http://", "https://");
     }
 
-    // If it's already l-d1.onrender.com but missing /api, add it
+    // If it's already millenium-potters.onrender.com but missing /api, add it
     if (
-      url.includes("l-d1.onrender.com/uploads") &&
+      url.includes("millenium-potters.onrender.com/uploads") &&
       !url.includes("/api/uploads")
     ) {
       return url.replace(
-        "l-d1.onrender.com/uploads",
-        "l-d1.onrender.com/api/uploads"
+        "millenium-potters.onrender.com/uploads",
+        "millenium-potters.onrender.com/api/uploads"
       );
     }
 
@@ -42,8 +42,8 @@ export const isImageUrlAccessible = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
 
-    // Allow deployed backend URLs (l-d1.onrender.com)
-    if (urlObj.hostname === "l-d1.onrender.com") {
+    // Allow deployed backend URLs (millenium-potters.onrender.com)
+    if (urlObj.hostname === "millenium-potters.onrender.com") {
       return true;
     }
 

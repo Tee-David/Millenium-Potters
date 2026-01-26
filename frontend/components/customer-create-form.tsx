@@ -85,12 +85,12 @@ interface CreditOfficerOption {
 interface UserProfile {
   id: string;
   role:
-    | UserRole
-    | "customer"
-    | "CREDIT_OFFICER"
-    | "credit_officer"
-    | "BRANCH_MANAGER"
-    | "branch_manager";
+  | UserRole
+  | "customer"
+  | "CREDIT_OFFICER"
+  | "credit_officer"
+  | "BRANCH_MANAGER"
+  | "branch_manager";
   branchId?: string;
   email: string;
 }
@@ -263,13 +263,13 @@ export function CustomerCreateForm() {
 
         const creditOfficersData = creditOfficersResponse.data.success
           ? creditOfficersResponse.data.data?.users ||
-            creditOfficersResponse.data.data ||
-            []
+          creditOfficersResponse.data.data ||
+          []
           : creditOfficersResponse.data.data?.users ||
-            creditOfficersResponse.data.users ||
-            creditOfficersResponse.data.data ||
-            creditOfficersResponse.data ||
-            [];
+          creditOfficersResponse.data.users ||
+          creditOfficersResponse.data.data ||
+          creditOfficersResponse.data ||
+          [];
 
         console.log("Credit Officers Data:", creditOfficersData);
 
@@ -285,9 +285,9 @@ export function CustomerCreateForm() {
               officer.firstName && officer.lastName
                 ? `${officer.firstName} ${officer.lastName}`
                 : officer.firstName ||
-                  officer.lastName ||
-                  officer.email ||
-                  `Credit Officer ${officer.id.slice(-4)}`,
+                officer.lastName ||
+                officer.email ||
+                `Credit Officer ${officer.id.slice(-4)}`,
             role: "credit_officer",
           }));
 
@@ -572,9 +572,8 @@ export function CustomerCreateForm() {
 
               // Upload document using the document API
               const uploadResponse = await fetch(
-                `${
-                  process.env.NEXT_PUBLIC_API_URL ||
-                  "https://l-d1.onrender.com/api"
+                `${process.env.NEXT_PUBLIC_API_URL ||
+                "https://millenium-potters.onrender.com/api"
                 }/documents/union-member/${createdCustomer.id}`,
                 {
                   method: "POST",
@@ -631,8 +630,7 @@ export function CustomerCreateForm() {
           profileFormData.append("type", "profile");
 
           const profileUploadResponse = await fetch(
-            `${
-              process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api"
+            `${process.env.NEXT_PUBLIC_API_URL || "https://millenium-potters.onrender.com/api"
             }/documents/union-member/${createdCustomer.id}/profile`,
             {
               method: "POST",
@@ -664,8 +662,7 @@ export function CustomerCreateForm() {
       ).length;
       if (docCount > 0) {
         toast.success(
-          `Customer created successfully with ${docCount} document${
-            docCount > 1 ? "s" : ""
+          `Customer created successfully with ${docCount} document${docCount > 1 ? "s" : ""
           } uploaded`
         );
       } else {
@@ -706,9 +703,8 @@ export function CustomerCreateForm() {
           const errorMessages = errors
             .map((err: any) => {
               if (typeof err === "string") return err;
-              return `${err.field || err.path || "Field"}: ${
-                err.message || err.msg || err
-              }`;
+              return `${err.field || err.path || "Field"}: ${err.message || err.msg || err
+                }`;
             })
             .join("\n");
           toast.error(`Validation failed:\n${errorMessages}`);
@@ -769,8 +765,7 @@ export function CustomerCreateForm() {
         toast.error("Server Error: Please try again later.");
       } else {
         toast.error(
-          `Error ${status || "Unknown"}: ${
-            message || "Failed to create customer. Please try again."
+          `Error ${status || "Unknown"}: ${message || "Failed to create customer. Please try again."
           }`
         );
       }
@@ -1052,7 +1047,7 @@ export function CustomerCreateForm() {
                       className={cn(
                         "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
                         dateOfBirthError &&
-                          "border-red-500 focus:border-red-500"
+                        "border-red-500 focus:border-red-500"
                       )}
                       wrapperClassName="w-full"
                     />

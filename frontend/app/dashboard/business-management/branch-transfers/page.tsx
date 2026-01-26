@@ -250,24 +250,24 @@ function BranchTransferManagementPageContent() {
       // Filter and map credit officers
       const creditOfficers = Array.isArray(creditOfficersData)
         ? creditOfficersData
-            .filter(
-              (user: any) => user.role === UserRole.CREDIT_OFFICER && user.id
-            )
-            .map((user: any) => ({
-              id: user.id,
-              email: user.email,
-              name:
-                user.name ||
-                `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-              firstName: user.firstName,
-              lastName: user.lastName,
-              role: user.role,
-              branchId: user.branchId,
-              branch: user.branch,
-            }))
-            .sort((a: any, b: any) =>
-              (a.name || a.email).localeCompare(b.name || b.email)
-            )
+          .filter(
+            (user: any) => user.role === UserRole.CREDIT_OFFICER && user.id
+          )
+          .map((user: any) => ({
+            id: user.id,
+            email: user.email,
+            name:
+              user.name ||
+              `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            branchId: user.branchId,
+            branch: user.branch,
+          }))
+          .sort((a: any, b: any) =>
+            (a.name || a.email).localeCompare(b.name || b.email)
+          )
         : [];
 
       console.log("Final credit officers list:", creditOfficers);
@@ -544,7 +544,7 @@ function BranchTransferManagementPageContent() {
                     );
 
                     const response = await fetch(
-                      "https://l-d1.onrender.com/api/branch-transfers",
+                      "https://millenium-potters.onrender.com/api/branch-transfers",
                       {
                         method: "GET",
                         headers: {
@@ -801,23 +801,23 @@ function BranchTransferManagementPageContent() {
               statusFilter !== "all" ||
               branchFilter !== "all" ||
               userFilter !== "all") && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setStatusFilter("all");
-                    setBranchFilter("all");
-                    setUserFilter("all");
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <Filter className="w-4 h-4" />
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStatusFilter("all");
+                      setBranchFilter("all");
+                      setUserFilter("all");
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Filter className="w-4 h-4" />
+                    Clear All Filters
+                  </Button>
+                </div>
+              )}
           </CardContent>
         </Card>
 
@@ -937,7 +937,7 @@ function BranchTransferManagementPageContent() {
                             <div>
                               <div className="font-medium">
                                 {transfer.user.firstName &&
-                                transfer.user.lastName
+                                  transfer.user.lastName
                                   ? `${transfer.user.firstName} ${transfer.user.lastName}`
                                   : transfer.user.name || transfer.user.email}
                               </div>

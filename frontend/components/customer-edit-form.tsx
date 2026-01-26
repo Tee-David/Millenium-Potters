@@ -172,8 +172,8 @@ const DocumentUploadItem = ({
               isDragActive
                 ? "border-emerald-500 bg-emerald-50 scale-105"
                 : isUploading
-                ? "border-gray-300 bg-gray-100 cursor-not-allowed"
-                : "border-gray-300 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50"
+                  ? "border-gray-300 bg-gray-100 cursor-not-allowed"
+                  : "border-gray-300 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50"
             )}
             aria-label="Drag and drop document, or click to select file"
             style={{ pointerEvents: isUploading ? "none" : "auto" }}
@@ -396,13 +396,13 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
 
         const creditOfficersData = creditOfficersResponse.data.success
           ? creditOfficersResponse.data.data?.users ||
-            creditOfficersResponse.data.data ||
-            []
+          creditOfficersResponse.data.data ||
+          []
           : creditOfficersResponse.data.data?.users ||
-            creditOfficersResponse.data.users ||
-            creditOfficersResponse.data.data ||
-            creditOfficersResponse.data ||
-            [];
+          creditOfficersResponse.data.users ||
+          creditOfficersResponse.data.data ||
+          creditOfficersResponse.data ||
+          [];
 
         const creditOfficers = creditOfficersData
           .filter(
@@ -559,8 +559,7 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
     try {
       // Remove document - need to check the correct API endpoint
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api"
+        `${process.env.NEXT_PUBLIC_API_URL || "https://millenium-potters.onrender.com/api"
         }/documents/union-member/${customerId}/${documentId}`,
         {
           method: "DELETE",
@@ -651,9 +650,8 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
             docFormData.append("documentTypeId", newDoc.type);
 
             const uploadResponse = await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_URL ||
-                "https://l-d1.onrender.com/api"
+              `${process.env.NEXT_PUBLIC_API_URL ||
+              "https://millenium-potters.onrender.com/api"
               }/documents/union-member/${customerId}`,
               {
                 method: "POST",
@@ -1040,7 +1038,7 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                           className={cn(
                             "flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-gray-300 hover:border-emerald-500 focus:border-emerald-500",
                             dateOfBirthError &&
-                              "border-red-500 focus:border-red-500"
+                            "border-red-500 focus:border-red-500"
                           )}
                           wrapperClassName="w-full"
                         />
@@ -1409,7 +1407,7 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                                 <span className="text-blue-600 hover:text-blue-800 cursor-pointer font-medium break-all">
                                   {document.fileUrl
                                     ? document.fileUrl.split("/").pop() ||
-                                      "Document"
+                                    "Document"
                                     : "No filename"}
                                 </span>
                               </div>

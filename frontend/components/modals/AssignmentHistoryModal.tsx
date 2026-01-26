@@ -94,8 +94,7 @@ export function AssignmentHistoryModal({
 
       const token = getAccessToken();
 
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "https://l-d1.onrender.com/api";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(
         `${API_URL}/assignment-history?page=1&limit=100`,
         {

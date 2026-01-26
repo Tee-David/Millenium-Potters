@@ -102,11 +102,10 @@ const FileDropzone = ({
     <div className="space-y-2">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-          isDragActive
+        className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${isDragActive
             ? "border-blue-500 bg-blue-50"
             : "border-gray-300 hover:border-gray-400"
-        }`}
+          }`}
       >
         <input {...getInputProps()} />
         {file ? (
@@ -505,17 +504,17 @@ export default function LoanEditPage() {
       prev.map((g) =>
         g.id === guarantorId
           ? {
-              ...g,
-              documents: [
-                ...g.documents,
-                {
-                  id: Date.now().toString(),
-                  type: "",
-                  file: null,
-                  description: "",
-                },
-              ],
-            }
+            ...g,
+            documents: [
+              ...g.documents,
+              {
+                id: Date.now().toString(),
+                type: "",
+                file: null,
+                description: "",
+              },
+            ],
+          }
           : g
       )
     );
@@ -526,12 +525,12 @@ export default function LoanEditPage() {
       prev.map((g) =>
         g.id === guarantorId
           ? {
-              ...g,
-              documents:
-                g.documents.length > 1
-                  ? g.documents.filter((doc) => doc.id !== docId)
-                  : g.documents,
-            }
+            ...g,
+            documents:
+              g.documents.length > 1
+                ? g.documents.filter((doc) => doc.id !== docId)
+                : g.documents,
+          }
           : g
       )
     );
@@ -547,11 +546,11 @@ export default function LoanEditPage() {
       prev.map((g) =>
         g.id === guarantorId
           ? {
-              ...g,
-              documents: g.documents.map((doc) =>
-                doc.id === docId ? { ...doc, [field]: value } : doc
-              ),
-            }
+            ...g,
+            documents: g.documents.map((doc) =>
+              doc.id === docId ? { ...doc, [field]: value } : doc
+            ),
+          }
           : g
       )
     );
@@ -747,9 +746,8 @@ export default function LoanEditPage() {
             }
 
             const uploadResponse = await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_URL ||
-                "https://l-d1.onrender.com/api"
+              `${process.env.NEXT_PUBLIC_API_URL ||
+              "https://millenium-potters.onrender.com/api"
               }/documents/loan/${loanId}`,
               {
                 method: "POST",

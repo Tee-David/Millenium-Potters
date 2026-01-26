@@ -770,9 +770,8 @@ export default function LoanDetailPage() {
           />
           <SummaryCard
             title="Term Duration"
-            value={`${loan?.termCount || 0} ${
-              loan?.termUnit?.toLowerCase() || ""
-            }`}
+            value={`${loan?.termCount || 0} ${loan?.termUnit?.toLowerCase() || ""
+              }`}
             icon={<CalendarDays className="h-6 w-6 text-white" />}
             color="purple"
             subtitle="Repayment period"
@@ -836,8 +835,7 @@ export default function LoanDetailPage() {
                   label="Customer"
                   content={
                     loan?.unionMember
-                      ? `${loan.unionMember?.firstName || ""} ${
-                          loan.unionMember?.lastName || ""
+                      ? `${loan.unionMember?.firstName || ""} ${loan.unionMember?.lastName || ""
                         }`.trim() || "N/A"
                       : "N/A"
                   }
@@ -852,14 +850,14 @@ export default function LoanDetailPage() {
                         <p className="font-semibold text-gray-900">
                           {/* Check assignedOfficer first, then fall back to union's creditOfficer */}
                           {loan?.assignedOfficer?.firstName &&
-                          loan?.assignedOfficer?.lastName
+                            loan?.assignedOfficer?.lastName
                             ? `${loan.assignedOfficer.firstName} ${loan.assignedOfficer.lastName}`
                             : loan?.assignedOfficer?.email
-                            ? loan.assignedOfficer.email
-                            : (loan?.union as any)?.creditOfficer?.firstName &&
-                              (loan?.union as any)?.creditOfficer?.lastName
-                            ? `${(loan?.union as any).creditOfficer.firstName} ${(loan?.union as any).creditOfficer.lastName}`
-                            : (loan?.union as any)?.creditOfficer?.email || "N/A"}
+                              ? loan.assignedOfficer.email
+                              : (loan?.union as any)?.creditOfficer?.firstName &&
+                                (loan?.union as any)?.creditOfficer?.lastName
+                                ? `${(loan?.union as any).creditOfficer.firstName} ${(loan?.union as any).creditOfficer.lastName}`
+                                : (loan?.union as any)?.creditOfficer?.email || "N/A"}
                         </p>
                         {(loan?.assignedOfficer?.role || (loan?.union as any)?.creditOfficer?.role) && (
                           <p className="text-sm text-gray-500 capitalize">
@@ -878,10 +876,9 @@ export default function LoanDetailPage() {
                       <div>
                         <p className="font-semibold text-gray-900">
                           {(loan?.createdByUser as any)?.firstName &&
-                          (loan?.createdByUser as any)?.lastName
-                            ? `${(loan.createdByUser as any).firstName} ${
-                                (loan.createdByUser as any).lastName
-                              }`
+                            (loan?.createdByUser as any)?.lastName
+                            ? `${(loan.createdByUser as any).firstName} ${(loan.createdByUser as any).lastName
+                            }`
                             : (loan?.createdByUser as any)?.email || "N/A"}
                         </p>
                         {(loan?.createdByUser as any)?.role && (
@@ -1002,9 +999,8 @@ export default function LoanDetailPage() {
                                 size="sm"
                                 onClick={() =>
                                   window.open(
-                                    `${
-                                      process.env.NEXT_PUBLIC_API_URL ||
-                                      "https://l-d1.onrender.com/api"
+                                    `${process.env.NEXT_PUBLIC_API_URL ||
+                                    "https://millenium-potters.onrender.com/api"
                                     }/documents/serve/${doc.id}`,
                                     "_blank"
                                   )
@@ -1058,7 +1054,7 @@ export default function LoanDetailPage() {
                               {guarantor.name}
                             </h5>
                             {guarantor.documents &&
-                            guarantor.documents.length > 0 ? (
+                              guarantor.documents.length > 0 ? (
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {guarantor.documents.map((doc: any) => (
                                   <div
@@ -1098,10 +1094,9 @@ export default function LoanDetailPage() {
                                             size="sm"
                                             onClick={() =>
                                               window.open(
-                                                `${
-                                                  process.env
-                                                    .NEXT_PUBLIC_API_URL ||
-                                                  "https://l-d1.onrender.com/api"
+                                                `${process.env
+                                                  .NEXT_PUBLIC_API_URL ||
+                                                "https://l-d1.onrender.com/api"
                                                 }/documents/serve/${doc.id}`,
                                                 "_blank"
                                               )
@@ -1119,11 +1114,10 @@ export default function LoanDetailPage() {
                                             onClick={() => {
                                               const link =
                                                 document.createElement("a");
-                                              link.href = `${
-                                                process.env
-                                                  .NEXT_PUBLIC_API_URL ||
+                                              link.href = `${process.env
+                                                .NEXT_PUBLIC_API_URL ||
                                                 "https://l-d1.onrender.com/api"
-                                              }/documents/serve/${doc.id}`;
+                                                }/documents/serve/${doc.id}`;
                                               link.download =
                                                 (doc as any).fileName ||
                                                 `guarantor-document-${doc.id}`;
@@ -1287,8 +1281,8 @@ export default function LoanDetailPage() {
                               {formatNairaCurrency(
                                 Number(
                                   schedule.principalDue ||
-                                    schedule.principalAmount ||
-                                    0
+                                  schedule.principalAmount ||
+                                  0
                                 )
                               )}
                             </span>
@@ -1298,8 +1292,8 @@ export default function LoanDetailPage() {
                               {formatNairaCurrency(
                                 Number(
                                   schedule.interestDue ||
-                                    schedule.interestAmount ||
-                                    0
+                                  schedule.interestAmount ||
+                                  0
                                 )
                               )}
                             </span>
@@ -1319,8 +1313,8 @@ export default function LoanDetailPage() {
                                 schedule.status === "PAID"
                                   ? "bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-300"
                                   : schedule.status === "OVERDUE"
-                                  ? "bg-gradient-to-r from-red-100 to-rose-200 text-red-800 border-red-300"
-                                  : "bg-gradient-to-r from-amber-100 to-yellow-200 text-amber-800 border-amber-300"
+                                    ? "bg-gradient-to-r from-red-100 to-rose-200 text-red-800 border-red-300"
+                                    : "bg-gradient-to-r from-amber-100 to-yellow-200 text-amber-800 border-amber-300"
                               }
                             >
                               {schedule.status || "PENDING"}
@@ -1551,12 +1545,12 @@ export default function LoanDetailPage() {
                                 repayment.method === "CASH"
                                   ? "bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 border-green-300"
                                   : repayment.method === "TRANSFER"
-                                  ? "bg-gradient-to-r from-blue-100 to-indigo-200 text-blue-800 border-blue-300"
-                                  : repayment.method === "POS"
-                                  ? "bg-gradient-to-r from-purple-100 to-violet-200 text-purple-800 border-purple-300"
-                                  : repayment.method === "MOBILE"
-                                  ? "bg-gradient-to-r from-orange-100 to-amber-200 text-orange-800 border-orange-300"
-                                  : "bg-gradient-to-r from-gray-100 to-slate-200 text-gray-800 border-gray-300"
+                                    ? "bg-gradient-to-r from-blue-100 to-indigo-200 text-blue-800 border-blue-300"
+                                    : repayment.method === "POS"
+                                      ? "bg-gradient-to-r from-purple-100 to-violet-200 text-purple-800 border-purple-300"
+                                      : repayment.method === "MOBILE"
+                                        ? "bg-gradient-to-r from-orange-100 to-amber-200 text-orange-800 border-orange-300"
+                                        : "bg-gradient-to-r from-gray-100 to-slate-200 text-gray-800 border-gray-300"
                               }
                             >
                               {repayment.method}
@@ -1644,26 +1638,26 @@ export default function LoanDetailPage() {
                   : "Confirm Loan Rejection"}
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground space-y-3">
                   {statusUpdateData.status === "APPROVED" ? (
                     <>
-                      <p>Are you sure you want to approve this loan? This action will:</p>
-                      <ul className="list-disc ml-6 mt-2 space-y-1">
+                      <div>Are you sure you want to approve this loan? This action will:</div>
+                      <ul className="list-disc ml-6 space-y-1">
                         <li>Generate the repayment schedule</li>
                         <li>Make the loan active for disbursement</li>
                         <li>Notify the credit officer</li>
                       </ul>
-                      <p className="mt-3 font-medium">This action cannot be undone.</p>
+                      <div className="font-medium">This action cannot be undone.</div>
                     </>
                   ) : (
                     <>
-                      <p>Are you sure you want to reject this loan? This action will:</p>
-                      <ul className="list-disc ml-6 mt-2 space-y-1">
+                      <div>Are you sure you want to reject this loan? This action will:</div>
+                      <ul className="list-disc ml-6 space-y-1">
                         <li>Cancel the loan application</li>
                         <li>Notify the credit officer of the rejection</li>
                         <li>Record the rejection reason in the system</li>
                       </ul>
-                      <p className="mt-3 font-medium">This action cannot be undone.</p>
+                      <div className="font-medium">This action cannot be undone.</div>
                     </>
                   )}
                 </div>
@@ -1701,11 +1695,10 @@ export default function LoanDetailPage() {
             <DialogHeader className="pb-4">
               <div className="flex items-center gap-3">
                 <div
-                  className={`p-2 rounded-lg ${
-                    statusUpdateData.status === "APPROVED"
-                      ? "bg-green-100"
-                      : "bg-red-100"
-                  }`}
+                  className={`p-2 rounded-lg ${statusUpdateData.status === "APPROVED"
+                    ? "bg-green-100"
+                    : "bg-red-100"
+                    }`}
                 >
                   {statusUpdateData.status === "APPROVED" ? (
                     <CheckCircle className="h-5 w-5 text-green-600" />
