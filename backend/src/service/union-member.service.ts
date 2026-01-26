@@ -163,7 +163,7 @@ export class UnionMemberService {
         phone: data.phone ? data.phone.trim() : null,
         email: data.email ? data.email.toLowerCase().trim() : null,
         address: data.address ? data.address.trim() : null,
-        dateOfBirth: data.dateOfBirth,
+        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
         gender: data.gender ? data.gender.trim() : null,
         maritalStatus: data.maritalStatus ? data.maritalStatus.trim() : null,
         profession: data.profession ? data.profession.trim() : null,
@@ -498,7 +498,7 @@ export class UnionMemberService {
     }
 
     if (data.dateOfBirth !== undefined) {
-      updatePayload.dateOfBirth = data.dateOfBirth;
+      updatePayload.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
     }
 
     if (data.gender !== undefined) {

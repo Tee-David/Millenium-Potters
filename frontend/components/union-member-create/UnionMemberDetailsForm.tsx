@@ -12,6 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { COUNTRIES } from "@/lib/countries";
+
 // Gender options
 const GENDER_OPTIONS = [
   { value: "MALE", label: "Male" },
@@ -25,18 +27,6 @@ const MARITAL_STATUS_OPTIONS = [
   { value: "MARRIED", label: "Married" },
   { value: "DIVORCED", label: "Divorced" },
   { value: "WIDOWED", label: "Widowed" },
-];
-
-// Country options (with Nigeria first since this is a Nigerian app)
-const COUNTRY_OPTIONS = [
-  { value: "Nigeria", label: "Nigeria" },
-  { value: "Ghana", label: "Ghana" },
-  { value: "Kenya", label: "Kenya" },
-  { value: "South Africa", label: "South Africa" },
-  { value: "United Kingdom", label: "United Kingdom" },
-  { value: "United States", label: "United States" },
-  { value: "Canada", label: "Canada" },
-  { value: "Other", label: "Other" },
 ];
 
 export function UnionMemberDetailsForm({
@@ -115,10 +105,10 @@ export function UnionMemberDetailsForm({
             loadingOfficers
               ? "Loading credit officers..."
               : !formData.union
-              ? "Select a union to continue"
-              : creditOfficerOptions.length === 0
-              ? "No credit officers assigned"
-              : "Select Credit Officer"
+                ? "Select a union to continue"
+                : creditOfficerOptions.length === 0
+                  ? "No credit officers assigned"
+                  : "Select Credit Officer"
           }
           searchPlaceholder="Search credit officers..."
           options={creditOfficerOptions}
@@ -299,21 +289,13 @@ export function UnionMemberDetailsForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="country">Country</Label>
-          <Select
+          <SearchableSelect
             value={formData.country}
             onValueChange={(val) => handleChange("country", val)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select country" />
-            </SelectTrigger>
-            <SelectContent>
-              {COUNTRY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Select Country"
+            searchPlaceholder="Search countries..."
+            options={COUNTRIES}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="zipCode">Zip Code</Label>

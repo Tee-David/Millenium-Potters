@@ -156,6 +156,11 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    // Handle 403 Forbidden - Silently handle it, let the component decide if it wants to show an error
+    if (err.response?.status === 403) {
+      return Promise.reject(err);
+    }
+
     // Handle 429 rate limiting with retry
     if (err.response?.status === 429) {
       const config = err.config;
@@ -166,8 +171,7 @@ api.interceptors.response.use(
         config._retryCount++;
         const delay = Math.pow(2, config._retryCount) * 1000; // Exponential backoff: 2s, 4s, 8s
         console.warn(
-          `⚠️ Rate limited - retrying in ${delay / 1000}s (attempt ${
-            config._retryCount
+          `⚠️ Rate limited - retrying in ${delay / 1000}s (attempt ${config._retryCount
           }/3)`
         );
 
@@ -905,7 +909,8 @@ export const handleApiError = (error: any) => {
         window.location.href = "/login";
         return "Your session has expired. Please login again.";
       case 403:
-        return "You don't have permission to perform this action.";
+        // Return null to indicate handled/suppressed error
+        return null;
       case 404:
         return "The requested resource was not found.";
       case 409:
@@ -921,9 +926,8 @@ export const handleApiError = (error: any) => {
     }
   } else if (error.request) {
     // Request was made but no response received
-    return `Network Error: ${
-      error.message || "Unable to connect to the server"
-    }`;
+    return `Network Error: ${error.message || "Unable to connect to the server"
+      }`;
   } else {
     // Something else happened
     return error.message || "An unexpected error occurred";

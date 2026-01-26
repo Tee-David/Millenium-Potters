@@ -6,13 +6,51 @@ import prisma from "../prismaClient";
 
 export class AuthService {
   static async register(email: string, password: string) {
-    // Validate email doesn't exist
+    // Validate email...
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      throw new Error("Email already exists");
+      if (!existingUser.deletedAt) {
+        throw new Error("Email already exists");
+      }
+
+      // User exists but is deleted - RESTORE THEM
+      console.log(`AuthService.register: Restoring soft-deleted user: ${email}`);
+
+      const validation = PasswordUtil.validate(password);
+      if (!validation.valid) {
+        throw new Error(validation.message);
+      }
+
+      const passwordHash = await PasswordUtil.hash(password);
+
+      const restoredUser = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          passwordHash,
+          role: Role.ADMIN, // Ensure they are admin
+          isActive: true,
+          deletedAt: null, // RESTORE
+        },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+
+      return {
+        user: {
+          id: restoredUser.id,
+          email: restoredUser.email,
+          role: restoredUser.role,
+        },
+        message: "Admin account restored successfully",
+      };
     }
 
     // Validate password
@@ -55,10 +93,12 @@ export class AuthService {
     ipAddress?: string,
     userAgent?: string
   ) {
-    console.log("AuthService.login: Attempting login for email:", email);
+    // Normalize email to lowercase (emails are stored lowercase)
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log("AuthService.login: Attempting login for email:", normalizedEmail);
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     console.log("AuthService.login: User found:", {
@@ -124,6 +164,32 @@ export class AuthService {
     const refreshToken = JwtUtil.generateRefreshToken(tokenPayload);
 
     console.log("AuthService.login: Tokens generated successfully");
+
+    // Enforce max 3 active sessions per user
+    const MAX_SESSIONS_PER_USER = 3;
+    const activeSessions = await prisma.staffSession.findMany({
+      where: {
+        userId: user.id,
+        revokedAt: null,
+        expiresAt: { gte: new Date() },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    // If at max capacity, revoke oldest session(s) to make room
+    if (activeSessions.length >= MAX_SESSIONS_PER_USER) {
+      const sessionsToRevoke = activeSessions.slice(
+        0,
+        activeSessions.length - MAX_SESSIONS_PER_USER + 1
+      );
+      await prisma.staffSession.updateMany({
+        where: { id: { in: sessionsToRevoke.map((s) => s.id) } },
+        data: { revokedAt: new Date() },
+      });
+      console.log(
+        `AuthService.login: Revoked ${sessionsToRevoke.length} old session(s) to enforce limit`
+      );
+    }
 
     // Create session
     const expiresAt = new Date();
@@ -215,6 +281,12 @@ export class AuthService {
 
     if (!user) {
       throw new Error("User not found");
+    }
+
+    // Protect Super Admin password change
+    const protectedEmails = ["superadmin", "teedavid30@gmail.com"];
+    if (protectedEmails.includes(user.email.toLowerCase())) {
+      throw new Error("Protected Super Admin password cannot be changed");
     }
 
     const isPasswordValid = await PasswordUtil.compare(
@@ -406,6 +478,12 @@ export class AuthService {
 
     if (!targetUser.isActive) {
       throw new Error("Cannot impersonate an inactive user");
+    }
+
+    // Protect Super Admin from impersonation
+    const protectedEmails = ["superadmin", "teedavid30@gmail.com"];
+    if (protectedEmails.includes(targetUser.email.toLowerCase())) {
+      throw new Error("Protected Super Admin accounts cannot be impersonated");
     }
 
     // Log the impersonation in audit log
