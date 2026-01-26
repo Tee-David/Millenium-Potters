@@ -14,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import { COUNTRIES } from "@/lib/countries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   CalendarIcon,
@@ -50,7 +52,6 @@ import {
 } from "@/lib/api";
 import { Customer, CustomerDocument } from "@/types/customer";
 import { DocumentType } from "@/types";
-import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast } from "sonner";
 
 interface CustomerFormData {
@@ -591,9 +592,13 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
     if (!formData.phoneNumber.trim()) return "Phone number is required";
     if (!formData.union) return "Union selection is required";
     if (!formData.creditOfficer) return "Credit officer selection is required";
-    if (!formData.dateOfBirth) return "Date of birth is required";
-    if (!formData.gender) return "Gender is required";
-    if (!formData.maritalStatus) return "Marital status is required";
+
+    // Optional Date of Birth validation
+    if (formData.dateOfBirth) {
+      // Age check is handled in handleInputChange but we can double check here or trust that
+      // if it's set, it's valid, provided we don't block empty values.
+      // Let's rely on the fact that if it's set, it should be valid > 16yo
+    }
 
     // Email validation (optional but must be valid if provided)
     if (formData.email.trim()) {
@@ -977,7 +982,7 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                         className="text-sm font-semibold text-gray-700 flex items-center gap-2"
                       >
                         <Mail className="h-4 w-4" />
-                        Email Address <span className="text-red-500">*</span>
+                        Email Address
                       </Label>
                       <Input
                         id="email"
@@ -988,7 +993,6 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                         }
                         className="h-12 text-base border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
                         placeholder="Enter email address"
-                        required
                       />
                     </div>
                     <div className="space-y-3">
@@ -1016,9 +1020,9 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                     <div className="space-y-3">
                       <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                         <CalendarIcon className="h-4 w-4" />
-                        Date Of Birth <span className="text-red-500">*</span>
+                        Date Of Birth
                         <span className="text-xs text-gray-500 ml-2">
-                          (Must be 16+ years old)
+                          (Must be at least 16 years old - Optional)
                         </span>
                       </Label>
                       <div className="relative">
@@ -1032,7 +1036,7 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                           dropdownMode="select"
                           dateFormat="dd/MM/yyyy"
                           placeholderText="dd/mm/yyyy"
-                          maxDate={new Date()}
+                          maxDate={new Date(new Date().setFullYear(new Date().getFullYear() - 16))}
                           yearDropdownItemNumber={80}
                           scrollableYearDropdown
                           className={cn(
@@ -1057,7 +1061,7 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                         className="text-sm font-semibold text-gray-700 flex items-center gap-2"
                       >
                         <User className="h-4 w-4" />
-                        Gender <span className="text-red-500">*</span>
+                        Gender
                       </Label>
                       <Select
                         value={formData.gender}
@@ -1084,7 +1088,7 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                         className="text-sm font-semibold text-gray-700 flex items-center gap-2"
                       >
                         <User className="h-4 w-4" />
-                        Marital Status <span className="text-red-500">*</span>
+                        Marital Status
                       </Label>
                       <Select
                         value={formData.maritalStatus}
@@ -1282,14 +1286,14 @@ export function CustomerEditForm({ customerId }: CustomerEditFormProps) {
                         <Building className="h-4 w-4" />
                         Country
                       </Label>
-                      <Input
-                        id="country"
+                      <SearchableSelect
+                        options={COUNTRIES}
                         value={formData.country}
-                        onChange={(e) =>
-                          handleInputChange("country", e.target.value)
+                        onValueChange={(val) =>
+                          handleInputChange("country", val)
                         }
-                        className="h-12 text-base border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
-                        placeholder="Enter country"
+                        placeholder="Select Country"
+                        searchPlaceholder="Search countries..."
                       />
                     </div>
                     <div className="space-y-3">
