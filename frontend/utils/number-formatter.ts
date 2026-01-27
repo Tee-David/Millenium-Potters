@@ -12,10 +12,10 @@ export const formatCompactNumber = (value: number | string, currencySymbol?: str
     }
 
     const formatter = new Intl.NumberFormat('en-US', {
-        notFound: 'compact',
+        notation: 'compact',
         compactDisplay: 'short',
         maximumFractionDigits: 1,
-    } as any); // Type assertion needed for 'compact' notation in some TS environments if lib is old
+    });
 
     let formatted = formatter.format(num);
 
