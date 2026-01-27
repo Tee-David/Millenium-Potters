@@ -1832,5 +1832,6 @@ export default function LoanDetailPage() {
         </Dialog>
 
       </div>
-      );
+    </div >
+  );
 }
