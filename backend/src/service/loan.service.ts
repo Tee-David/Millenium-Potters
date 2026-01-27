@@ -885,21 +885,41 @@ export class LoanService {
       throw new Error("Loan not found");
     }
 
-    // Only drafts and pending approvals can be deleted
-    if (
-      loan.status !== LoanStatus.DRAFT &&
-      loan.status !== LoanStatus.PENDING_APPROVAL
-    ) {
-      throw new Error("Only draft or pending approval loans can be deleted");
-    }
-
     // Permission check based on role
     if (userRole === Role.ADMIN) {
       // ADMIN can delete all loans - no restrictions
       console.log("ADMIN user - allowing delete of loan:", id);
-    } else if (userRole === Role.CREDIT_OFFICER) {
-      // CREDIT_OFFICER can only delete loans they are assigned to
-      throw new Error("You do not have permission to delete this loan");
+    } else if (userRole === Role.CREDIT_OFFICER && userId) {
+      // CREDIT_OFFICER can only delete DRAFT or PENDING_APPROVAL loans
+      if (
+        loan.status !== LoanStatus.DRAFT &&
+        loan.status !== LoanStatus.PENDING_APPROVAL
+      ) {
+        throw new Error("Only draft or pending approval loans can be deleted");
+      }
+
+      // Check if loan belongs to a union managed by this officer
+      const userUnions = await prisma.union.findMany({
+        where: {
+          creditOfficerId: userId,
+          deletedAt: null,
+        },
+        select: { id: true },
+      });
+
+      const unionIds = userUnions.map((u) => u.id);
+
+      if (!unionIds.includes(loan.unionId)) {
+        throw new Error("You do not have permission to delete this loan");
+      }
+
+      console.log(
+        "CREDIT_OFFICER user - allowing delete of unapproved loan in union:",
+        loan.unionId
+      );
+    } else {
+      // Other roles (SUPERVISOR, etc.) cannot delete loans
+      throw new Error("You do not have permission to delete loans");
     }
 
     // Soft delete
@@ -1028,8 +1048,7 @@ export class LoanService {
       (sum: Decimal, item: any) => {
         const paidAmount = new Decimal(item.paidAmount || 0);
         console.log(
-          `Schedule Item ${
-            item.sequence
+          `Schedule Item ${item.sequence
           }: paidAmount = ${paidAmount.toString()}`
         );
         return sum.plus(paidAmount);
@@ -1086,11 +1105,11 @@ export class LoanService {
       overdueCount: overdueItems.length,
       completionPercentage: new Decimal(loan.principalAmount).gt(0)
         ? parseFloat(
-            totalPaidFromSchedule
-              .div(new Decimal(loan.principalAmount))
-              .mul(100)
-              .toFixed(2)
-          )
+          totalPaidFromSchedule
+            .div(new Decimal(loan.principalAmount))
+            .mul(100)
+            .toFixed(2)
+        )
         : 0,
       status: loan.status,
     };

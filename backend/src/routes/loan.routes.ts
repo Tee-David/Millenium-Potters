@@ -88,6 +88,7 @@ router.post(
 
 router.delete(
   "/:id",
+  requireStaff,
   auditLog("LOAN_DELETED", "Loan"),
   LoanController.deleteLoan
 );
