@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatCompactNumber } from "@/utils/number-formatter";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -598,6 +599,8 @@ export default function RepaymentSchedulePage() {
 
     loadMasterData();
   }, []);
+
+
 
   // Load repayment schedules
   const loadRepaymentSchedules = async () => {
@@ -1312,16 +1315,16 @@ export default function RepaymentSchedulePage() {
                 Total Amount Due
               </p>
               <p className="text-lg sm:text-2xl font-bold mt-1">
-                ₦
-                {filteredData
-                  .reduce(
+                {formatCompactNumber(
+                  filteredData.reduce(
                     (sum, item) =>
                       sum +
                       (safeParseNumber(item.totalDue) -
                         safeParseNumber(item.paidAmount)),
                     0
-                  )
-                  .toLocaleString()}
+                  ),
+                  "₦"
+                )}
               </p>
             </div>
             <Banknote className="h-6 w-6 sm:h-8 sm:w-8 text-purple-200" />
@@ -1431,16 +1434,16 @@ export default function RepaymentSchedulePage() {
                   Total Amount Due
                 </p>
                 <p className="text-lg sm:text-xl font-bold text-gray-900">
-                  ₦
-                  {filteredData
-                    .reduce(
+                  {formatCompactNumber(
+                    filteredData.reduce(
                       (sum, item) =>
                         sum +
                         (safeParseNumber(item.totalDue) -
                           safeParseNumber(item.paidAmount)),
                       0
-                    )
-                    .toLocaleString()}
+                    ),
+                    "₦"
+                  )}
                 </p>
               </div>
             </div>

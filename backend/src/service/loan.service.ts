@@ -922,11 +922,47 @@ export class LoanService {
       throw new Error("You do not have permission to delete loans");
     }
 
-    // Soft delete
+    // Cascading soft delete for related records
+    await prisma.repayment.updateMany({
+      where: { loanId: id },
+      data: { deletedAt: new Date() },
+    });
+
+    await prisma.repaymentScheduleItem.updateMany({
+      where: { loanId: id },
+      data: { deletedAt: new Date() },
+    });
+
+    // Soft delete the loan
     await prisma.loan.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
+
+    // Log to audit service
+    try {
+      // Actually, wait, let's just create the record directly using prisma if the service isn't easily accessible statically, 
+      // OR better, let's see if we can instantiate it. 
+      // Ideally we should keep the pattern.
+      // For now, I will use prisma.auditLog.create directly to ensure it works without complex DI changes in this legacy-ish static method context.
+
+      await prisma.auditLog.create({
+        data: {
+          action: 'LOAN_DELETED',
+          entityName: 'Loan',
+          entityId: id,
+          actorUserId: userId || userUnionId || 'SYSTEM', // Best effort to identify actor
+          metadata: {
+            reason: 'Loan deleted via application',
+            userRole: userRole,
+            loanNumber: loan.loanNumber
+          }
+        }
+      });
+    } catch (logError) {
+      console.error("Failed to create audit log for loan deletion:", logError);
+      // Don't fail the deletion if logging fails
+    }
   }
 
   static async getLoanSchedule(

@@ -88,6 +88,7 @@ import {
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatCompactNumber } from "@/utils/number-formatter";
 
 // Interfaces
 interface OfficerPerformance {
@@ -786,11 +787,11 @@ export default function SupervisorReportsPage() {
                     onValueChange={(v) =>
                       setReportType(
                         v as
-                          | "DAILY"
-                          | "WEEKLY"
-                          | "MONTHLY"
-                          | "QUARTERLY"
-                          | "CUSTOM"
+                        | "DAILY"
+                        | "WEEKLY"
+                        | "MONTHLY"
+                        | "QUARTERLY"
+                        | "CUSTOM"
                       )
                     }
                   >
@@ -905,7 +906,7 @@ export default function SupervisorReportsPage() {
               </CardHeader>
               <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
                 <div className="text-lg sm:text-2xl font-bold truncate">
-                  {formatCurrency(dashboardData.summary.totalDisbursed)}
+                  {formatCompactNumber(dashboardData.summary.totalDisbursed, "₦")}
                 </div>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">
                   From {dashboardData.summary.totalLoans} loans
@@ -929,7 +930,7 @@ export default function SupervisorReportsPage() {
                   {formatPercentage(dashboardData.summary.collectionRate)}
                 </div>
                 <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                  {formatCurrency(dashboardData.summary.totalRepaid)} collected
+                  {formatCompactNumber(dashboardData.summary.totalRepaid, "₦")} collected
                 </p>
               </CardContent>
             </Card>
@@ -1073,8 +1074,9 @@ export default function SupervisorReportsPage() {
                           Outstanding
                         </span>
                         <span className="font-bold text-sm sm:text-lg">
-                          {formatCurrency(
-                            dashboardData.summary.totalOutstanding
+                          {formatCompactNumber(
+                            dashboardData.summary.totalOutstanding,
+                            "₦"
                           )}
                         </span>
                       </div>
@@ -1201,14 +1203,13 @@ export default function SupervisorReportsPage() {
                                     officer.collectionRate >= 80
                                       ? "default"
                                       : officer.collectionRate >= 50
-                                      ? "secondary"
-                                      : "destructive"
+                                        ? "secondary"
+                                        : "destructive"
                                   }
-                                  className={`text-[10px] sm:text-xs px-1 sm:px-2 ${
-                                    officer.collectionRate >= 80
-                                      ? "bg-green-500"
-                                      : ""
-                                  }`}
+                                  className={`text-[10px] sm:text-xs px-1 sm:px-2 ${officer.collectionRate >= 80
+                                    ? "bg-green-500"
+                                    : ""
+                                    }`}
                                 >
                                   {formatPercentage(officer.collectionRate)}
                                 </Badge>
@@ -1412,132 +1413,131 @@ export default function SupervisorReportsPage() {
                     </div>
                   ) : (
                     <>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-xs sm:text-sm">
-                            Title
-                          </TableHead>
-                          <TableHead className="text-xs sm:text-sm hidden sm:table-cell">
-                            Type
-                          </TableHead>
-                          <TableHead className="text-xs sm:text-sm hidden md:table-cell">
-                            Period
-                          </TableHead>
-                          <TableHead className="text-center text-xs sm:text-sm hidden lg:table-cell">
-                            Officers
-                          </TableHead>
-                          <TableHead className="text-right text-xs sm:text-sm hidden md:table-cell">
-                            Disbursed
-                          </TableHead>
-                          <TableHead className="text-center text-xs sm:text-sm">
-                            Rate
-                          </TableHead>
-                          <TableHead className="text-xs sm:text-sm hidden sm:table-cell">
-                            Generated
-                          </TableHead>
-                          <TableHead className="text-right text-xs sm:text-sm">
-                            Actions
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {reportSessions.map((report) => (
-                          <TableRow key={report.id}>
-                            <TableCell className="font-medium p-2 sm:p-4 text-xs sm:text-sm">
-                              <div className="truncate max-w-[80px] sm:max-w-none">
-                                {report.title}
-                              </div>
-                            </TableCell>
-                            <TableCell className="p-2 sm:p-4 hidden sm:table-cell">
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] sm:text-xs"
-                              >
-                                {report.reportType}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="p-2 sm:p-4 hidden md:table-cell">
-                              <span className="text-[10px] sm:text-xs">
-                                {format(new Date(report.periodStart), "MMM d")}{" "}
-                                - {format(new Date(report.periodEnd), "MMM d")}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center p-2 sm:p-4 hidden lg:table-cell text-xs sm:text-sm">
-                              {report.totalOfficers}
-                            </TableCell>
-                            <TableCell className="text-right p-2 sm:p-4 hidden md:table-cell text-xs sm:text-sm">
-                              {formatCurrency(Number(report.totalDisbursed))}
-                            </TableCell>
-                            <TableCell className="text-center p-2 sm:p-4">
-                              <Badge
-                                variant={
-                                  Number(report.collectionRate) >= 80
-                                    ? "default"
-                                    : "secondary"
-                                }
-                                className={`text-[10px] sm:text-xs ${
-                                  Number(report.collectionRate) >= 80
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs sm:text-sm">
+                              Title
+                            </TableHead>
+                            <TableHead className="text-xs sm:text-sm hidden sm:table-cell">
+                              Type
+                            </TableHead>
+                            <TableHead className="text-xs sm:text-sm hidden md:table-cell">
+                              Period
+                            </TableHead>
+                            <TableHead className="text-center text-xs sm:text-sm hidden lg:table-cell">
+                              Officers
+                            </TableHead>
+                            <TableHead className="text-right text-xs sm:text-sm hidden md:table-cell">
+                              Disbursed
+                            </TableHead>
+                            <TableHead className="text-center text-xs sm:text-sm">
+                              Rate
+                            </TableHead>
+                            <TableHead className="text-xs sm:text-sm hidden sm:table-cell">
+                              Generated
+                            </TableHead>
+                            <TableHead className="text-right text-xs sm:text-sm">
+                              Actions
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {reportSessions.map((report) => (
+                            <TableRow key={report.id}>
+                              <TableCell className="font-medium p-2 sm:p-4 text-xs sm:text-sm">
+                                <div className="truncate max-w-[80px] sm:max-w-none">
+                                  {report.title}
+                                </div>
+                              </TableCell>
+                              <TableCell className="p-2 sm:p-4 hidden sm:table-cell">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] sm:text-xs"
+                                >
+                                  {report.reportType}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="p-2 sm:p-4 hidden md:table-cell">
+                                <span className="text-[10px] sm:text-xs">
+                                  {format(new Date(report.periodStart), "MMM d")}{" "}
+                                  - {format(new Date(report.periodEnd), "MMM d")}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center p-2 sm:p-4 hidden lg:table-cell text-xs sm:text-sm">
+                                {report.totalOfficers}
+                              </TableCell>
+                              <TableCell className="text-right p-2 sm:p-4 hidden md:table-cell text-xs sm:text-sm">
+                                {formatCurrency(Number(report.totalDisbursed))}
+                              </TableCell>
+                              <TableCell className="text-center p-2 sm:p-4">
+                                <Badge
+                                  variant={
+                                    Number(report.collectionRate) >= 80
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                  className={`text-[10px] sm:text-xs ${Number(report.collectionRate) >= 80
                                     ? "bg-green-500"
                                     : ""
-                                }`}
-                              >
-                                {formatPercentage(
-                                  Number(report.collectionRate)
-                                )}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="p-2 sm:p-4 hidden sm:table-cell">
-                              <span className="text-[10px] sm:text-xs text-muted-foreground">
-                                {format(
-                                  new Date(report.generatedAt),
-                                  "MMM d, HH:mm"
-                                )}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-right p-2 sm:p-4">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 sm:h-8 sm:w-8"
-                                onClick={() => handleDeleteReport(report.id)}
-                              >
-                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                                    }`}
+                                >
+                                  {formatPercentage(
+                                    Number(report.collectionRate)
+                                  )}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="p-2 sm:p-4 hidden sm:table-cell">
+                                <span className="text-[10px] sm:text-xs text-muted-foreground">
+                                  {format(
+                                    new Date(report.generatedAt),
+                                    "MMM d, HH:mm"
+                                  )}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right p-2 sm:p-4">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 sm:h-8 sm:w-8"
+                                  onClick={() => handleDeleteReport(report.id)}
+                                >
+                                  <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
 
-                    {/* Pagination Controls */}
-                    {totalReportPages > 1 && (
-                      <div className="flex items-center justify-between pt-4 border-t">
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Page {reportPage} of {totalReportPages}
-                        </p>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fetchReportSessions(reportPage - 1)}
-                            disabled={reportPage <= 1 || reportsLoading}
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                            <span className="hidden sm:inline ml-1">Previous</span>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fetchReportSessions(reportPage + 1)}
-                            disabled={reportPage >= totalReportPages || reportsLoading}
-                          >
-                            <span className="hidden sm:inline mr-1">Next</span>
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
+                      {/* Pagination Controls */}
+                      {totalReportPages > 1 && (
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            Page {reportPage} of {totalReportPages}
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fetchReportSessions(reportPage - 1)}
+                              disabled={reportPage <= 1 || reportsLoading}
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                              <span className="hidden sm:inline ml-1">Previous</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fetchReportSessions(reportPage + 1)}
+                              disabled={reportPage >= totalReportPages || reportsLoading}
+                            >
+                              <span className="hidden sm:inline mr-1">Next</span>
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                     </>
                   )}
                 </CardContent>

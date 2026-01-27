@@ -74,6 +74,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { formatNaira } from "@/utils/currency";
+import { formatCompactNumber } from "@/utils/number-formatter";
 import { exportToExcel, exportToPDF, copyToClipboard } from "@/utils/export";
 import { Loan } from "@/types/loan";
 import { SearchableSelect } from "@/components/SearchableSelect";
@@ -1166,8 +1167,9 @@ function LoanListPageContent() {
           />
           <SummaryCard
             title="Total Amount"
-            value={formatNaira(
-              loans.reduce((sum, loan) => sum + Number(loan.principalAmount), 0)
+            value={formatCompactNumber(
+              loans.reduce((sum, loan) => sum + Number(loan.principalAmount), 0),
+              "₦"
             )}
             icon={<span className="text-white font-bold text-sm">₦</span>}
             color="violet"
@@ -1175,7 +1177,7 @@ function LoanListPageContent() {
           />
           <SummaryCard
             title="Outstanding"
-            value={formatNaira(
+            value={formatCompactNumber(
               loans
                 .filter(
                   (loan) =>
@@ -1187,7 +1189,8 @@ function LoanListPageContent() {
                       ? loan.totalOutstanding
                       : Number(loan.principalAmount) - (loan.totalPaid || 0);
                   return sum + outstanding;
-                }, 0)
+                }, 0),
+              "₦"
             )}
             icon={<AlertCircle className="h-5 w-5 text-white" />}
             color="amber"
@@ -2320,10 +2323,10 @@ function LoanListPageContent() {
       <ConfirmationModal
         isOpen={!!deleteLoanId}
         title="Delete Loan"
-        message="Are you sure you want to delete this loan? This action cannot be undone."
+        message="Are you sure you want to delete this loan? This will also permanently delete all associated repayments and schedules. This action cannot be undone."
         onConfirm={confirmDeleteLoan}
         onCancel={cancelDeleteLoan}
-        confirmButtonText={isDeletingLoan ? "Deleting..." : "Delete"}
+        confirmButtonText={isDeletingLoan ? "Deleting..." : "Delete Loan"}
         confirmButtonVariant="destructive"
         isLoading={isDeletingLoan}
         requireDeleteKeyword={true}
