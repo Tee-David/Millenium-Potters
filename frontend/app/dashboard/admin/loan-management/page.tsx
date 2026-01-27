@@ -38,6 +38,7 @@ import { AdminOnly, AccessDenied } from "@/components/auth/RoleGuard";
 import { getUserDisplayName } from "@/utils/user-display";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { ConfirmationModal } from "@/components/modals/confirmation-modal";
 import {
   CheckCircle,
   XCircle,
@@ -56,6 +57,7 @@ import {
   Users,
   Settings,
   FileText,
+  Trash2,
 } from "lucide-react";
 
 // Helper functions
@@ -486,7 +488,7 @@ function ApprovalDialog({
                   </Label>
                   <p className="text-sm sm:text-base font-semibold">
                     {loan.assignedOfficer?.firstName &&
-                    loan.assignedOfficer?.lastName
+                      loan.assignedOfficer?.lastName
                       ? `${loan.assignedOfficer.firstName} ${loan.assignedOfficer.lastName}`
                       : loan.assignedOfficer?.email || "N/A"}
                   </p>
@@ -607,8 +609,8 @@ function ApprovalDialog({
                   action === "approve"
                     ? "Add any notes about the approval..."
                     : action === "reject"
-                    ? "Provide reason for rejection..."
-                    : "Select an action first..."
+                      ? "Provide reason for rejection..."
+                      : "Select an action first..."
                 }
                 className="min-h-[100px]"
                 disabled={!action}
@@ -639,8 +641,8 @@ function ApprovalDialog({
               action === "approve"
                 ? "bg-green-600 hover:bg-green-700"
                 : action === "reject"
-                ? "bg-red-600 hover:bg-red-700"
-                : ""
+                  ? "bg-red-600 hover:bg-red-700"
+                  : ""
             }
           >
             {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -665,6 +667,8 @@ function AdminLoanManagementPageContent() {
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [processingLoanId, setProcessingLoanId] = useState<string | null>(null);
+  const [deleteLoanId, setDeleteLoanId] = useState<string | null>(null);
+  const [isDeletingLoan, setIsDeletingLoan] = useState(false);
 
   // Load pending loans
   useEffect(() => {
@@ -820,6 +824,42 @@ function AdminLoanManagementPageContent() {
       toast.error("Failed to reject loan");
     } finally {
       setProcessingLoanId(null);
+    }
+  };
+
+  const handleDeleteLoan = (loanId: string) => {
+    // Find the loan to check its status
+    const loan = loans.find((l) => l.id === loanId);
+    if (!loan) return;
+
+    // Rules for Admin page (mostly triggered by Admins anyway, but good to be safe)
+    const isAdmin = user?.role === "ADMIN";
+    const isCreditOfficer = user?.role === "CREDIT_OFFICER";
+
+    // On this admin page, we assume admins can delete anything.
+    if (isAdmin) {
+      setDeleteLoanId(loanId);
+    } else {
+      toast.error("Permission Denied", {
+        description: "Only Admins can delete loans from this page.",
+      });
+    }
+  };
+
+  const confirmDeleteLoan = async () => {
+    if (!deleteLoanId) return;
+
+    setIsDeletingLoan(true);
+    try {
+      await loansApi.remove(deleteLoanId);
+      setLoans((prev) => prev.filter((loan) => loan.id !== deleteLoanId));
+      setDeleteLoanId(null);
+      toast.success("Loan deleted successfully");
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete loan");
+    } finally {
+      setIsDeletingLoan(false);
     }
   };
 
@@ -1025,6 +1065,15 @@ function AdminLoanManagementPageContent() {
                               <Eye className="h-4 w-4 mr-1" />
                               Review
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                              onClick={() => handleDeleteLoan(loan.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1101,6 +1150,15 @@ function AdminLoanManagementPageContent() {
                           <Eye className="h-4 w-4 mr-1" />
                           Review Loan
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                          onClick={() => handleDeleteLoan(loan.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete Loan
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -1111,7 +1169,6 @@ function AdminLoanManagementPageContent() {
         </CardContent>
       </Card>
 
-      {/* Approval Dialog */}
       <ApprovalDialog
         isOpen={approvalDialogOpen}
         onClose={() => {
@@ -1122,6 +1179,19 @@ function AdminLoanManagementPageContent() {
         onReject={handleRejectLoan}
         loan={selectedLoan}
         isLoading={processingLoanId !== null}
+      />
+
+      <ConfirmationModal
+        isOpen={!!deleteLoanId}
+        title="Delete Loan"
+        message="Are you sure you want to delete this loan? This action cannot be undone."
+        onConfirm={confirmDeleteLoan}
+        onCancel={() => setDeleteLoanId(null)}
+        confirmButtonText={isDeletingLoan ? "Deleting..." : "Delete"}
+        confirmButtonVariant="destructive"
+        isLoading={isDeletingLoan}
+        requireDeleteKeyword={true}
+        deleteKeyword="DELETE"
       />
     </div>
   );

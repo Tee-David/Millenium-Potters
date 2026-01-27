@@ -144,14 +144,12 @@ const SummaryCard = ({
             {trend && (
               <div className="flex items-center gap-1">
                 <TrendingUp
-                  className={`h-3 w-3 ${
-                    trend.isPositive ? "text-green-600" : "text-red-600"
-                  }`}
+                  className={`h-3 w-3 ${trend.isPositive ? "text-green-600" : "text-red-600"
+                    }`}
                 />
                 <span
-                  className={`text-xs font-medium ${
-                    trend.isPositive ? "text-green-600" : "text-red-600"
-                  }`}
+                  className={`text-xs font-medium ${trend.isPositive ? "text-green-600" : "text-red-600"
+                    }`}
                 >
                   {trend.isPositive ? "+" : ""}
                   {trend.value}%
@@ -271,10 +269,10 @@ function LoanListPageContent() {
       formattedAmount: formatNaira(loan.principalAmount),
       formattedDate: loan.createdAt
         ? new Date(loan.createdAt).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })
         : "N/A",
       customerName: loan.unionMember
         ? `${loan.unionMember.firstName} ${loan.unionMember.lastName}`
@@ -359,118 +357,118 @@ function LoanListPageContent() {
       // Parse and validate nested data properly
       const parsedLoans = Array.isArray(loansData)
         ? loansData
-            .map(
-              (loan: any): LoanWithRelations => ({
-                id: loan.id,
-                loanNumber: loan.loanNumber || `LOAN-${loan.id.slice(-6)}`,
-                principalAmount:
-                  typeof loan.principalAmount === "number"
-                    ? loan.principalAmount
-                    : typeof loan.principalAmount === "string"
+          .map(
+            (loan: any): LoanWithRelations => ({
+              id: loan.id,
+              loanNumber: loan.loanNumber || `LOAN-${loan.id.slice(-6)}`,
+              principalAmount:
+                typeof loan.principalAmount === "number"
+                  ? loan.principalAmount
+                  : typeof loan.principalAmount === "string"
                     ? parseFloat(loan.principalAmount) || 0
                     : 0,
-                status: (loan.status || "DRAFT") as
-                  | "DRAFT"
-                  | "PENDING_APPROVAL"
-                  | "APPROVED"
-                  | "ACTIVE"
-                  | "COMPLETED"
-                  | "DEFAULTED"
-                  | "WRITTEN_OFF"
-                  | "CANCELED",
-                createdAt: loan.createdAt,
-                dueDate: loan.endDate || loan.dueDate,
-                unionMemberId: loan.unionMemberId || "",
-                unionId: loan.unionId || "",
-                currencyCode: loan.currencyCode || "NGN",
-                termCount:
-                  typeof loan.termCount === "number" ? loan.termCount : 1,
-                termUnit: (loan.termUnit || "MONTH") as
-                  | "DAY"
-                  | "WEEK"
-                  | "MONTH",
-                startDate: loan.startDate || loan.createdAt,
-                processingFeeAmount:
-                  typeof loan.processingFeeAmount === "number"
-                    ? loan.processingFeeAmount
-                    : 0,
-                penaltyFeePerDayAmount:
-                  typeof loan.penaltyFeePerDayAmount === "number"
-                    ? loan.penaltyFeePerDayAmount
-                    : 0,
-                notes: loan.notes || "",
-                loanTypeId: loan.loanTypeId || "",
-                createdByUserId: loan.createdByUserId || "",
-                assignedOfficerId: loan.assignedOfficerId || "",
-                processingFeeCollected: Boolean(loan.processingFeeCollected),
-                documents: Array.isArray(loan.documents) ? loan.documents : [],
-                updatedAt: loan.updatedAt || loan.createdAt,
-                repaymentsCount: loan._count?.repayments ?? 0,
-                scheduleItemsCount: loan._count?.scheduleItems ?? 0,
-                unionMember: loan.unionMember
-                  ? {
-                      id: loan.unionMember.id,
-                      firstName: loan.unionMember.firstName || "",
-                      lastName: loan.unionMember.lastName || "",
-                      phone: loan.unionMember.phone || "",
-                      email: loan.unionMember.email || "",
-                      code: loan.unionMember.code || "",
-                    }
-                  : undefined,
-                loanType: loan.loanType
-                  ? {
-                      id: loan.loanType.id,
-                      name: loan.loanType.name || "Unknown Type",
-                    }
-                  : undefined,
-                createdByUser: loan.createdByUser
-                  ? {
-                      id: loan.createdByUser.id,
-                      email: loan.createdByUser.email || "Unknown User",
-                      firstName: loan.createdByUser.firstName,
-                      lastName: loan.createdByUser.lastName,
-                      role: loan.createdByUser.role,
-                    }
-                  : undefined,
-                union: loan.union
-                  ? {
-                      id: loan.union.id,
-                      name: loan.union.name || "Unknown Union",
-                      code: (loan.union as any).code || "",
-                    }
-                  : undefined,
-                assignedOfficer: loan.assignedOfficer
-                  ? {
-                      id: loan.assignedOfficer.id,
-                      email: loan.assignedOfficer.email || "",
-                      role: loan.assignedOfficer.role || "",
-                    }
-                  : undefined,
-                // Payment summary fields from backend
-                totalPaid:
-                  typeof loan.totalPaid === "number"
-                    ? loan.totalPaid
-                    : typeof loan.totalPaid === "string"
+              status: (loan.status || "DRAFT") as
+                | "DRAFT"
+                | "PENDING_APPROVAL"
+                | "APPROVED"
+                | "ACTIVE"
+                | "COMPLETED"
+                | "DEFAULTED"
+                | "WRITTEN_OFF"
+                | "CANCELED",
+              createdAt: loan.createdAt,
+              dueDate: loan.endDate || loan.dueDate,
+              unionMemberId: loan.unionMemberId || "",
+              unionId: loan.unionId || "",
+              currencyCode: loan.currencyCode || "NGN",
+              termCount:
+                typeof loan.termCount === "number" ? loan.termCount : 1,
+              termUnit: (loan.termUnit || "MONTH") as
+                | "DAY"
+                | "WEEK"
+                | "MONTH",
+              startDate: loan.startDate || loan.createdAt,
+              processingFeeAmount:
+                typeof loan.processingFeeAmount === "number"
+                  ? loan.processingFeeAmount
+                  : 0,
+              penaltyFeePerDayAmount:
+                typeof loan.penaltyFeePerDayAmount === "number"
+                  ? loan.penaltyFeePerDayAmount
+                  : 0,
+              notes: loan.notes || "",
+              loanTypeId: loan.loanTypeId || "",
+              createdByUserId: loan.createdByUserId || "",
+              assignedOfficerId: loan.assignedOfficerId || "",
+              processingFeeCollected: Boolean(loan.processingFeeCollected),
+              documents: Array.isArray(loan.documents) ? loan.documents : [],
+              updatedAt: loan.updatedAt || loan.createdAt,
+              repaymentsCount: loan._count?.repayments ?? 0,
+              scheduleItemsCount: loan._count?.scheduleItems ?? 0,
+              unionMember: loan.unionMember
+                ? {
+                  id: loan.unionMember.id,
+                  firstName: loan.unionMember.firstName || "",
+                  lastName: loan.unionMember.lastName || "",
+                  phone: loan.unionMember.phone || "",
+                  email: loan.unionMember.email || "",
+                  code: loan.unionMember.code || "",
+                }
+                : undefined,
+              loanType: loan.loanType
+                ? {
+                  id: loan.loanType.id,
+                  name: loan.loanType.name || "Unknown Type",
+                }
+                : undefined,
+              createdByUser: loan.createdByUser
+                ? {
+                  id: loan.createdByUser.id,
+                  email: loan.createdByUser.email || "Unknown User",
+                  firstName: loan.createdByUser.firstName,
+                  lastName: loan.createdByUser.lastName,
+                  role: loan.createdByUser.role,
+                }
+                : undefined,
+              union: loan.union
+                ? {
+                  id: loan.union.id,
+                  name: loan.union.name || "Unknown Union",
+                  code: (loan.union as any).code || "",
+                }
+                : undefined,
+              assignedOfficer: loan.assignedOfficer
+                ? {
+                  id: loan.assignedOfficer.id,
+                  email: loan.assignedOfficer.email || "",
+                  role: loan.assignedOfficer.role || "",
+                }
+                : undefined,
+              // Payment summary fields from backend
+              totalPaid:
+                typeof loan.totalPaid === "number"
+                  ? loan.totalPaid
+                  : typeof loan.totalPaid === "string"
                     ? parseFloat(loan.totalPaid) || 0
                     : 0,
-                totalOutstanding:
-                  typeof loan.totalOutstanding === "number"
-                    ? loan.totalOutstanding
-                    : typeof loan.totalOutstanding === "string"
+              totalOutstanding:
+                typeof loan.totalOutstanding === "number"
+                  ? loan.totalOutstanding
+                  : typeof loan.totalOutstanding === "string"
                     ? parseFloat(loan.totalOutstanding) || 0
                     : undefined,
-              })
-            )
-            .filter((loan: LoanWithRelations) => {
-              // Validate required fields
-              return (
-                loan &&
-                loan.id &&
-                loan.loanNumber &&
-                typeof loan.principalAmount === "number" &&
-                loan.principalAmount >= 0
-              );
             })
+          )
+          .filter((loan: LoanWithRelations) => {
+            // Validate required fields
+            return (
+              loan &&
+              loan.id &&
+              loan.loanNumber &&
+              typeof loan.principalAmount === "number" &&
+              loan.principalAmount >= 0
+            );
+          })
         : [];
 
       setLoans(parsedLoans);
@@ -512,12 +510,12 @@ function LoanListPageContent() {
       // Filter and map credit officers
       const officers = Array.isArray(usersData)
         ? usersData
-            .filter((user: any) => user.role === "CREDIT_OFFICER" && user.id)
-            .map((user: any) => ({
-              value: user.id,
-              label: getUserDisplayName(user, "Unknown Officer"),
-            }))
-            .sort((a, b) => a.label.localeCompare(b.label))
+          .filter((user: any) => user.role === "CREDIT_OFFICER" && user.id)
+          .map((user: any) => ({
+            value: user.id,
+            label: getUserDisplayName(user, "Unknown Officer"),
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label))
         : [];
 
       console.log("Mapped Officers:", officers);
@@ -678,15 +676,15 @@ function LoanListPageContent() {
             prevLoans.map((loan) =>
               loan.id === selectedLoanForPayment.id
                 ? {
-                    ...loan,
-                    ...updatedLoanData,
-                    // Add payment summary information
-                    totalPaid: loanSummary.totalPaid,
-                    totalOutstanding: loanSummary.totalOutstanding,
-                    completionPercentage: loanSummary.completionPercentage,
-                    overdueAmount: loanSummary.overdueAmount,
-                    overdueCount: loanSummary.overdueCount,
-                  }
+                  ...loan,
+                  ...updatedLoanData,
+                  // Add payment summary information
+                  totalPaid: loanSummary.totalPaid,
+                  totalOutstanding: loanSummary.totalOutstanding,
+                  completionPercentage: loanSummary.completionPercentage,
+                  overdueAmount: loanSummary.overdueAmount,
+                  overdueCount: loanSummary.overdueCount,
+                }
                 : loan
             )
           );
@@ -732,9 +730,8 @@ function LoanListPageContent() {
               loan.createdByUser.firstName.toLowerCase().includes(lower)) ||
             (loan.createdByUser.lastName &&
               loan.createdByUser.lastName.toLowerCase().includes(lower)) ||
-            `${loan.createdByUser.firstName || ""} ${
-              loan.createdByUser.lastName || ""
-            }`
+            `${loan.createdByUser.firstName || ""} ${loan.createdByUser.lastName || ""
+              }`
               .toLowerCase()
               .includes(lower)));
 
@@ -866,7 +863,26 @@ function LoanListPageContent() {
   };
 
   const handleDeleteLoan = (loanId: string) => {
-    setDeleteLoanId(loanId);
+    // Find the loan to check its status
+    const loan = loans.find((l) => l.id === loanId);
+    if (!loan) return;
+
+    const isAdmin = currentUser?.role === "ADMIN";
+    const isCreditOfficer = currentUser?.role === "CREDIT_OFFICER";
+    const isUnapproved =
+      loan.status === "DRAFT" || loan.status === "PENDING_APPROVAL";
+
+    if (isAdmin || (isCreditOfficer && isUnapproved)) {
+      setDeleteLoanId(loanId);
+    } else {
+      toast.error("Permission Denied", {
+        description: isAdmin
+          ? "You have permission to delete any loan."
+          : isCreditOfficer
+            ? "Credit Officers can only delete unapproved loans (Draft or Pending)."
+            : "Only Admins and Credit Officers can delete loans.",
+      });
+    }
   };
 
   const confirmDeleteLoan = async () => {
@@ -906,8 +922,7 @@ function LoanListPageContent() {
       const errorCount = result.errorCount || 0;
 
       toast.success(
-        `Successfully generated ${generatedCount} missing schedules out of ${totalLoans} loans${
-          errorCount > 0 ? ` (${errorCount} failed)` : ""
+        `Successfully generated ${generatedCount} missing schedules out of ${totalLoans} loans${errorCount > 0 ? ` (${errorCount} failed)` : ""
         }`,
         { duration: 5000 }
       );
@@ -1121,11 +1136,11 @@ function LoanListPageContent() {
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add New Loan
-                </Button>
-              </div>
+              </Button>
             </div>
           </div>
         </div>
+      </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -1241,11 +1256,10 @@ function LoanListPageContent() {
           </CardHeader>
           <CardContent>
             <div
-              className={`grid gap-4 ${
-                currentUser?.role === "CREDIT_OFFICER"
-                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
-                  : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
-              }`}
+              className={`grid gap-4 ${currentUser?.role === "CREDIT_OFFICER"
+                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+                : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+                }`}
             >
               {/* Search */}
               <div className="xl:col-span-2">
@@ -1295,26 +1309,26 @@ function LoanListPageContent() {
               {/* Credit Officer Filter - Only show to Admin and Supervisor */}
               {(currentUser?.role === "ADMIN" ||
                 currentUser?.role === "SUPERVISOR") && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Credit Officer
-                  </Label>
-                  <SearchableSelect
-                    value={selectedOfficer}
-                    onValueChange={setSelectedOfficer}
-                    placeholder="All officers"
-                    searchPlaceholder="Search officers..."
-                    options={[
-                      { value: "all", label: "All Officers" },
-                      ...creditOfficers.map((officer) => ({
-                        value: officer.value,
-                        label: officer.label,
-                      })),
-                    ]}
-                    className="bg-white border-gray-200 focus:border-green-500"
-                  />
-                </div>
-              )}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Credit Officer
+                    </Label>
+                    <SearchableSelect
+                      value={selectedOfficer}
+                      onValueChange={setSelectedOfficer}
+                      placeholder="All officers"
+                      searchPlaceholder="Search officers..."
+                      options={[
+                        { value: "all", label: "All Officers" },
+                        ...creditOfficers.map((officer) => ({
+                          value: officer.value,
+                          label: officer.label,
+                        })),
+                      ]}
+                      className="bg-white border-gray-200 focus:border-green-500"
+                    />
+                  </div>
+                )}
 
               {/* Date Range Filter */}
               <div>
@@ -1330,28 +1344,28 @@ function LoanListPageContent() {
               {/* Union Filter - Only show to Admin and Supervisor */}
               {(currentUser?.role === "ADMIN" ||
                 currentUser?.role === "SUPERVISOR") && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Union
-                  </Label>
-                  <Select
-                    value={selectedUnion}
-                    onValueChange={setSelectedUnion}
-                  >
-                    <SelectTrigger className="bg-white border-gray-200 focus:border-green-500">
-                      <SelectValue placeholder="All unions" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Unions</SelectItem>
-                      {unions.map((union) => (
-                        <SelectItem key={union.id} value={union.id}>
-                          {union.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Union
+                    </Label>
+                    <Select
+                      value={selectedUnion}
+                      onValueChange={setSelectedUnion}
+                    >
+                      <SelectTrigger className="bg-white border-gray-200 focus:border-green-500">
+                        <SelectValue placeholder="All unions" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Unions</SelectItem>
+                        {unions.map((union) => (
+                          <SelectItem key={union.id} value={union.id}>
+                            {union.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
               {/* Min Amount Filter */}
               <div>
@@ -1667,7 +1681,7 @@ function LoanListPageContent() {
                               <span className="text-lg">📅</span>
                               <span className="font-medium text-slate-900">
                                 {loan.status === "PENDING_APPROVAL" ||
-                                loan.status === "DRAFT" ? (
+                                  loan.status === "DRAFT" ? (
                                   <span className="text-slate-500 italic">
                                     Pending Approval
                                   </span>
@@ -1744,11 +1758,10 @@ function LoanListPageContent() {
                                       {isOverdue ? "⚠️" : "✓"}
                                     </span>
                                     <span
-                                      className={`font-semibold ${
-                                        isOverdue
-                                          ? "text-red-600 bg-red-50"
-                                          : "text-emerald-600 bg-emerald-50"
-                                      } px-2.5 py-1 rounded-md`}
+                                      className={`font-semibold ${isOverdue
+                                        ? "text-red-600 bg-red-50"
+                                        : "text-emerald-600 bg-emerald-50"
+                                        } px-2.5 py-1 rounded-md`}
                                     >
                                       {isOverdue ? "Yes" : "No"}
                                     </span>
@@ -1960,6 +1973,7 @@ function LoanListPageContent() {
                                 size="sm"
                                 onClick={() => handleDeleteLoan(loan.id)}
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                title="Delete Loan"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -2185,9 +2199,9 @@ function LoanListPageContent() {
               />
               {paymentForm.amount &&
                 parseFloat(paymentForm.amount) >
-                  parseFloat(
-                    String(selectedLoanForPayment?.totalOutstanding || "0")
-                  ) && (
+                parseFloat(
+                  String(selectedLoanForPayment?.totalOutstanding || "0")
+                ) && (
                   <p className="text-red-500 text-xs mt-0.5">
                     Exceeds balance (₦
                     {parseFloat(
