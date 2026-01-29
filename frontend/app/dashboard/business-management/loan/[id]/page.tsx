@@ -93,18 +93,39 @@ import {
 
 import { formatCompactNumber } from "@/utils/number-formatter";
 
-const formatNairaCurrency = (amount: number) =>
-  new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-  }).format(amount);
+const formatNairaCurrency = (amount: number) => {
+  try {
+    // Handle invalid numbers
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      return '₦0.00';
+    }
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+    }).format(amount);
+  } catch (error) {
+    console.error("Error formatting currency:", amount, error);
+    return '₦0.00';
+  }
+};
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  try {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch (error) {
+    console.error("Error formatting date:", dateString, error);
+    return "Invalid Date";
+  }
 };
 
 // Reusable Pagination Component
