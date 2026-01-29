@@ -52,6 +52,7 @@ import {
   Activity,
   PieChart,
   BarChart3,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { auth, loansApi, handleDatabaseError } from "@/lib/api";
