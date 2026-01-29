@@ -470,22 +470,23 @@ export default function LoanDetailPage() {
   };
 
   const loadLoanData = async () => {
+    console.log("[LOAN DETAIL] Starting loadLoanData for ID:", loanId);
     setLoading(true);
     setError(null);
 
     try {
-      console.log("Loading loan data for ID:", loanId);
+      console.log("[LOAN DETAIL] Calling loansApi.getById...");
 
       // Load loan details
       const loanResponse = await loansApi.getById(loanId);
-      console.log("Loan API response:", loanResponse);
+      console.log("[LOAN DETAIL] API response received:", loanResponse);
 
       const loanData = loanResponse.data.data || loanResponse.data;
-      console.log("Processed loan data:", loanData);
+      console.log("[LOAN DETAIL] Processed loan data:", loanData);
 
       // Validate loan data
       if (!loanData || !loanData.id) {
-        console.error("Invalid loan data received:", loanData);
+        console.error("[LOAN DETAIL] Invalid loan data received:", loanData);
         throw new Error("Invalid loan data received from server");
       }
 
@@ -496,20 +497,23 @@ export default function LoanDetailPage() {
         !loanData.customer.lastName
       ) {
         console.warn(
-          "Customer data missing firstName/lastName:",
+          "[LOAN DETAIL] Customer data missing firstName/lastName:",
           loanData.customer
         );
       }
 
+      console.log("[LOAN DETAIL] Setting loan state...");
       setLoan(loanData);
 
       // Extract repayments from loan data if available
       if (loanData.repayments && Array.isArray(loanData.repayments)) {
+        console.log("[LOAN DETAIL] Setting repayments:", loanData.repayments.length);
         setRepayments(loanData.repayments);
       }
 
       // Load repayment schedules
       try {
+        console.log("[LOAN DETAIL] Loading repayment schedules...");
         const scheduleResponse = await loansApi.getSchedule(loanId);
         const schedulesData =
           scheduleResponse.data.data?.schedules ||
@@ -517,15 +521,23 @@ export default function LoanDetailPage() {
           scheduleResponse.data.data ||
           scheduleResponse.data ||
           [];
+        console.log("[LOAN DETAIL] Schedules loaded:", Array.isArray(schedulesData) ? schedulesData.length : 'not an array');
         setRepaymentSchedules(
           Array.isArray(schedulesData) ? schedulesData : []
         );
       } catch (scheduleError) {
-        console.warn("Could not load repayment schedules:", scheduleError);
+        console.warn("[LOAN DETAIL] Could not load repayment schedules:", scheduleError);
         setRepaymentSchedules([]);
       }
+
+      console.log("[LOAN DETAIL] loadLoanData completed successfully");
     } catch (error: any) {
-      console.error("Failed to load loan data:", error);
+      console.error("[LOAN DETAIL] Failed to load loan data:", error);
+      console.error("[LOAN DETAIL] Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
 
       // Handle database errors with custom message
       if (
@@ -541,6 +553,7 @@ export default function LoanDetailPage() {
       setError(error.response?.data?.message || "Failed to load loan details");
       toast.error("Failed to load loan details");
     } finally {
+      console.log("[LOAN DETAIL] Setting loading to false");
       setLoading(false);
     }
   };
